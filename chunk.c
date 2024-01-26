@@ -4,7 +4,7 @@
 #include "memory.h"
 #include "value.h"
 
-static void grow_chunk(Chunk* chunk)
+static void grow(Chunk* chunk)
 {
     int old = chunk->capacity;
     int new = grow_capacity(old);
@@ -36,7 +36,7 @@ void write_chunk(Chunk*  chunk,
 {
     if (chunk->capacity < chunk->count + 1) 
     {
-        grow_chunk(chunk);
+        grow(chunk);
     }
 
     chunk->code[chunk->count] = byte;
