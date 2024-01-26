@@ -4,11 +4,19 @@
 #include <stdint.h>
 
 #include "chunk.h"
+#include "value.h"
+
+enum Stack_parameter
+{
+    stack_max = 256
+};
 
 typedef struct
 {
     Chunk*   chunk;
     uint8_t* ip;
+    Value    stack[stack_max];
+    Value*   stack_top;
 } VM;
 
 typedef enum
@@ -22,5 +30,7 @@ typedef enum
 void init_VM();
 void free_VM();
 Interpret_result interpret(Chunk* chunk);
+void push(Value value);
+Value pop();
 
 #endif

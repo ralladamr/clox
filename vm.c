@@ -25,6 +25,14 @@ static Interpret_result run()
     while (result == interpret_continue)
     {
 #ifdef DEBUG_TRACE_EXECUTION
+        printf("          ");
+        for (Value* slot = vm.stack; slot < vm.stack_top; slot++)
+        {
+            printf("[ ");
+            print_value(*slot);
+            printf(" ]");
+        }
+        printf("\n");
         disassemble_instruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
 #endif
 
@@ -33,10 +41,11 @@ static Interpret_result run()
         {
             case op_constant:
                 Value constant = read_constant();
-                print_value(constant);
-                printf("\n");
+                push(constant);
                 break;
             case op_return:
+                print_value(pop());
+                printf("\n");
                 result = interpret_ok;
                 break;
             default:
@@ -46,9 +55,14 @@ static Interpret_result run()
     return result;
 }
 
+static void reset_stack()
+{
+    vm.stack_top = vm.stack;
+}
+
 void init_VM()
 {
-
+    reset_stack();
 }
 
 void free_VM()
@@ -61,4 +75,16 @@ Interpret_result interpret(Chunk* chunk)
     vm.chunk = chunk;
     vm.ip = vm.chunk->code;
     return run();
+}
+
+void push(Value value)
+{
+    *vm.stack_top = value;
+    vm.stack_top++;
+}
+
+Value pop()
+{
+    vm.stack_top--;
+    return *vm.stack_top;
 }
