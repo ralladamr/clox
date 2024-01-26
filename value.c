@@ -4,6 +4,13 @@
 #include "memory.h"
 #include "value.h"
 
+static void grow(Value_array* array)
+{
+    int old = array->capacity;
+    array->capacity = grow_capacity(old);
+    array->values = grow_array_value(array->values, old, array->capacity);
+}
+
 void init_value_array(Value_array* array)
 {
     array->capacity = 0;
@@ -21,9 +28,7 @@ void write_value_array(Value_array* array, Value value)
 {
     if (array->capacity < array->count + 1)
     {
-        int old = array->capacity;
-        array->capacity = grow_capacity(old);
-        array->values = grow_array_value(array->values, old, array->capacity);
+        grow(array);
     }
 
     array->values[array->count] = value;
