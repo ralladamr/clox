@@ -58,6 +58,9 @@ int disassemble_instruction(Chunk* chunk, int offset)
         case op_constant:
             next = constant_instruction("OP_CONSTANT", chunk, offset);
             break;
+        case op_negate:
+            next = simple_instruction("OP_NEGATE", offset);
+            break;
         case op_return:
             next = simple_instruction("OP_RETURN", offset);
             break;

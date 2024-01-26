@@ -8,6 +8,7 @@
 typedef enum
 {
     op_constant,
+    op_negate,
     op_return,
 } Op_code;
 

@@ -43,6 +43,9 @@ static Interpret_result run()
                 Value constant = read_constant();
                 push(constant);
                 break;
+            case op_negate:
+                push(-pop());
+                break;
             case op_return:
                 print_value(pop());
                 printf("\n");
