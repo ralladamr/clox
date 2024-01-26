@@ -19,6 +19,43 @@ static inline Value read_constant()
     return vm.chunk->constants.values[byte];
 }
 
+static void unary_op(Op_code op)
+{
+
+    Value a = pop();
+    switch (op)
+    {
+        case op_negate:
+            push(-a);
+            break;
+        default:
+            break;
+    }
+}
+
+static void binary_op(Op_code op)
+{
+    Value b = pop();
+    Value a = pop();
+    switch (op)
+    {
+        case op_add:
+            push(a + b);
+            break;
+        case op_subtract:
+            push(a - b);
+            break;
+        case op_multiply:
+            push(a * b);
+            break;
+        case op_divide:
+            push(a / b);
+            break;
+        default:
+            break;
+    }
+}
+
 static Interpret_result run()
 {
     Interpret_result result = interpret_continue;
@@ -44,7 +81,13 @@ static Interpret_result run()
                 push(constant);
                 break;
             case op_negate:
-                push(-pop());
+                unary_op(instruction);
+                break;
+            case op_add:
+            case op_subtract:
+            case op_multiply:
+            case op_divide:
+                binary_op(instruction);
                 break;
             case op_return:
                 print_value(pop());
@@ -74,7 +117,7 @@ void free_VM()
 }
 
 Interpret_result interpret(Chunk* chunk)
-{   
+{
     vm.chunk = chunk;
     vm.ip = vm.chunk->code;
     return run();

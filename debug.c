@@ -61,6 +61,18 @@ int disassemble_instruction(Chunk* chunk, int offset)
         case op_negate:
             next = simple_instruction("OP_NEGATE", offset);
             break;
+        case op_add:
+            next = simple_instruction("OP_ADD", offset);
+            break;
+        case op_subtract:
+            next = simple_instruction("OP_SUBTRACT", offset);
+            break;
+        case op_multiply:
+            next = simple_instruction("OP_MULTIPLY", offset);
+            break;
+        case op_divide:
+            next = simple_instruction("OP_DIVIDE", offset);
+            break;
         case op_return:
             next = simple_instruction("OP_RETURN", offset);
             break;
