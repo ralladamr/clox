@@ -38,7 +38,7 @@ Interpret_result interpret(Chunk* chunk)
 static Interpret_result run()
 {
     Interpret_result result = interpret_continue;
-    while (result != interpret_ok)
+    while (result == interpret_continue)
     {
 #ifdef DEBUG_TRACE_EXECUTION
         disassemble_instruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
