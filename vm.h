@@ -1,6 +1,8 @@
 #ifndef clox_vm
 #define clox_vm
 
+#include <stdint.h>
+
 #include "chunk.h"
 
 typedef struct
