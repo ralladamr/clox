@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 #include "chunk.h"
+#include "debug.h"
 #include "value.h"
 #include "vm.h"
 
@@ -39,6 +40,10 @@ static Interpret_result run()
     Interpret_result result = interpret_continue;
     while (result != interpret_ok)
     {
+#ifdef DEBUG_TRACE_EXECUTION
+        disassemble_instruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
+#endif
+        
         uint8_t instruction = read_byte();
         switch (instruction)
         {
