@@ -18,23 +18,6 @@ static inline Value read_constant()
     return vm.chunk->constants.values[byte];
 }
 
-void init_VM()
-{
-
-}
-
-void free_VM()
-{
-
-}
-
-Interpret_result interpret(Chunk* chunk)
-{   
-    vm.chunk = chunk;
-    vm.ip = vm.chunk->code;
-    return run();
-}
-
 static Interpret_result run()
 {
     Interpret_result result = interpret_continue;
@@ -43,7 +26,7 @@ static Interpret_result run()
 #ifdef DEBUG_TRACE_EXECUTION
         disassemble_instruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
 #endif
-        
+
         uint8_t instruction = read_byte();
         switch (instruction)
         {
@@ -60,4 +43,21 @@ static Interpret_result run()
         }
     }
     return result;
+}
+
+void init_VM()
+{
+
+}
+
+void free_VM()
+{
+
+}
+
+Interpret_result interpret(Chunk* chunk)
+{   
+    vm.chunk = chunk;
+    vm.ip = vm.chunk->code;
+    return run();
 }
