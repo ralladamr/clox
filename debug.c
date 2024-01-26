@@ -4,17 +4,7 @@
 #include "debug.h"
 #include "value.h"
 
-void disassemble_chunk(Chunk* chunk, const char* name)
-{
-    printf("== %s ==\n", name);
-    int offset = 0;
-    while (offset < chunk->count)
-    {
-        offset = disassemble_instruction(chunk, offset);
-    }
-}
-
-int disassemble_instruction(Chunk* chunk, int offset)
+static int disassemble_instruction(Chunk* chunk, int offset)
 {
     printf("%04d ", offset);
     int line = chunk->lines[offset];
@@ -26,7 +16,7 @@ int disassemble_instruction(Chunk* chunk, int offset)
     {
         printf("%4d ", line);
     }
-    
+
     uint8_t instruction = chunk->code[offset];
     int next;
     switch (instruction)
@@ -61,3 +51,15 @@ static int simple_instruction(const char* name, int offset)
     printf("%s\n", name);
     return offset + 1;
 }
+
+void disassemble_chunk(Chunk* chunk, const char* name)
+{
+    printf("== %s ==\n", name);
+    int offset = 0;
+    while (offset < chunk->count)
+    {
+        offset = disassemble_instruction(chunk, offset);
+    }
+}
+
+
