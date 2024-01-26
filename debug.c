@@ -22,6 +22,12 @@ static int simple_instruction(const char* name, int offset)
     return offset + 1;
 }
 
+static int unknown_instruction(uint8_t instruction, int offset)
+{
+    printf("Unknown opcode %d\n", instruction);
+    return offset + 1;
+}
+
 void disassemble_chunk(Chunk* chunk, const char* name)
 {
     printf("== %s ==\n", name);
@@ -56,8 +62,7 @@ int disassemble_instruction(Chunk* chunk, int offset)
             next = simple_instruction("OP_RETURN", offset);
             break;
         default:
-            printf("Unknown opcode %d\n", instruction);
-            next = offset + 1;
+            next = unknown_instruction(instruction, offset);
             break;
     }
     return next;
