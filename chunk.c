@@ -1,5 +1,8 @@
+#include <stdint.h>
+
 #include "chunk.h"
 #include "memory.h"
+#include "value.h"
 
 void init_chunk(Chunk* chunk)
 {
