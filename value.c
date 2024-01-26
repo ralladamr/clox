@@ -13,7 +13,7 @@ void init_value_array(Value_array* array)
 
 void free_value_arrray(Value_array* array)
 {
-    free_array(Value, array->values, array->capacity);
+    free_array_value(array->values, array->capacity);
     init_value_array(array);
 }
 
@@ -23,7 +23,7 @@ void write_value_array(Value_array* array, Value value)
     {
         int old = array->capacity;
         array->capacity = grow_capacity(old);
-        array->values = grow_array(Value, array->values, old, array->capacity);
+        array->values = grow_array_value(array->values, old, array->capacity);
     }
 
     array->values[array->count] = value;

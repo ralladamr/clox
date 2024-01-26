@@ -4,6 +4,15 @@
 #include "memory.h"
 #include "value.h"
 
+static void grow_chunk(Chunk* chunk)
+{
+    int old = chunk->capacity;
+    int new = grow_capacity(old);
+    chunk->capacity = new;
+    chunk->code = grow_array_uint8_t(chunk->code, old, new);
+    chunk->lines = grow_array_int(chunk->lines, old, new);
+}
+
 void init_chunk(Chunk* chunk)
 {
     chunk->count = 0;
@@ -15,8 +24,8 @@ void init_chunk(Chunk* chunk)
 
 void free_chunk(Chunk* chunk)
 {
-    free_array(uint8_t, chunk->code, chunk->capacity);
-    free_array(int, chunk->lines, chunk->capacity);
+    free_array_uint8_t(chunk->code, chunk->capacity);
+    free_array_int(chunk->lines, chunk->capacity);
     free_value_arrray(&chunk->constants);
     init_chunk(chunk);
 }
@@ -27,11 +36,7 @@ void write_chunk(Chunk*  chunk,
 {
     if (chunk->capacity < chunk->count + 1) 
     {
-        int old = chunk->capacity;
-        int new = grow_capacity(old);
-        chunk->capacity = new;
-        chunk->code = grow_array(uint8_t, chunk->code, old, new);
-        chunk->lines = grow_array(int, chunk->lines, old, new);
+        grow_chunk(chunk);
     }
 
     chunk->code[chunk->count] = byte;
