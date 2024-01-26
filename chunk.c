@@ -28,9 +28,10 @@ void write_chunk(Chunk*  chunk,
     if (chunk->capacity < chunk->count + 1) 
     {
         int old = chunk->capacity;
-        chunk->capacity = grow_capacity(old);
-        chunk->code = grow_array(uint8_t, chunk->code, old, chunk->capacity);
-        chunk->lines = grow_array(int, chunk->lines, old, chunk->capacity);
+        int new = grow_capacity(old);
+        chunk->capacity = new;
+        chunk->code = grow_array(uint8_t, chunk->code, old, new);
+        chunk->lines = grow_array(int, chunk->lines, old, new);
     }
 
     chunk->code[chunk->count] = byte;
