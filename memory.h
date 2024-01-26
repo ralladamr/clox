@@ -11,7 +11,7 @@ static inline int grow_capacity(int capacity)
     return capacity < 8 ? 8 : (capacity * 2);
 }
 
-void* reallocate(void*  pointer, 
+void* reallocate(void*  pointer,
                  size_t old,
                  size_t new);
 

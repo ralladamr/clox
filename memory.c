@@ -2,18 +2,18 @@
 
 #include "memory.h"
 
-void* reallocate(void*  pointer, 
+void* reallocate(void*  pointer,
                  size_t old,
-                 size_t new) 
+                 size_t new)
 {
-    if (new == 0) 
+    if (new == 0)
     {
         free(pointer);
         return NULL;
     }
 
     void* result = realloc(pointer, new);
-    if (result == NULL) 
+    if (result == NULL)
     {
         exit(1);
     }
