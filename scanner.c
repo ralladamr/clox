@@ -1,4 +1,5 @@
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -34,6 +35,11 @@ static inline char peek_next()
     return at_end() ? '\0' : scanner.current[1];
 }
 
+static inline ptrdiff_t position()
+{
+    return scanner.current - scanner.start;
+}
+
 static inline char is_digit(char c)
 {
     return c >= '0' && c <= '9';
@@ -51,7 +57,7 @@ static char is_alpha(char c)
 static bool match(char c)
 {
     bool result;
-    if (at_end() || *scanner.current != c)
+    if (at_end() || c != peek())
     {
         result = false;
     }
@@ -65,7 +71,7 @@ static bool match(char c)
 
 static Token make(Token_type type)
 {
-    int length = (int)(scanner.current - scanner.start);
+    int length = (int)position();
     Token token = { type, scanner.start, length, scanner.line };
     return token;
 }
@@ -117,18 +123,18 @@ static void skip_whitespace()
 static Token_type check_keyword(int         start,
                                 int         length,
                                 const char* rest,
-                                Token_type  type)
+                                Token_type  expected)
 {
-    Token_type out = token_identifier;
-    if ((scanner.current - scanner.start) == (size_t)start + length)
+    Token_type type = token_identifier;
+    if (position() == (size_t)start + length)
     {
         int result = memcmp(scanner.start + start, rest, (size_t)length);
         if (result == 0)
         {
-            out = type;
+            type = expected;
         }
     }
-    return out;
+    return type;
 }
 
 static Token_type identifier_type()
@@ -146,7 +152,7 @@ static Token_type identifier_type()
             type = check_keyword(1, 3, "lse", token_else);
             break;
         case 'f':
-            if ((scanner.current - scanner.start) > 1)
+            if (position() > 1)
             {
                 switch (scanner.start[1])
                 {
@@ -180,7 +186,7 @@ static Token_type identifier_type()
             type = check_keyword(1, 5, "eturn", token_return);
             break;
         case 't':
-            if ((scanner.current - scanner.start) > 1)
+            if (position() > 1)
             {
                 switch (scanner.start[1])
                 {
