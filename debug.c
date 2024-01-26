@@ -45,8 +45,8 @@ int disassemble_instruction(Chunk* chunk, int offset)
 }
 
 static int constant_instruction(const char* name,
-                                Chunk* chunk,
-                                int offset)
+                                Chunk*      chunk,
+                                int         offset)
 {
     uint8_t constant = chunk->code[offset + 1];
     printf("%-16s %4d '", name, constant);

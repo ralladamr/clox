@@ -18,9 +18,9 @@ void free_chunk(Chunk* chunk)
     init_chunk(chunk);
 }
 
-void write_chunk(Chunk* chunk,
+void write_chunk(Chunk*  chunk,
                  uint8_t byte,
-                 int line)
+                 int     line)
 {
     if (chunk->capacity < chunk->count + 1) 
     {

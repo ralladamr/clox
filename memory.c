@@ -2,7 +2,7 @@
 
 #include "memory.h"
 
-void* reallocate(void* pointer, 
+void* reallocate(void*  pointer, 
                  size_t old,
                  size_t new) 
 {
