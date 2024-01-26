@@ -21,7 +21,6 @@ static inline Value read_constant()
 
 static void unary_op(Op_code op)
 {
-
     Value a = pop();
     switch (op)
     {
