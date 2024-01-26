@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "chunk.h"
+#include "compiler.h"
 #include "debug.h"
 #include "value.h"
 #include "vm.h"
@@ -115,11 +116,10 @@ void free_VM()
 
 }
 
-Interpret_result interpret(Chunk* chunk)
+Interpret_result interpret(const char* source)
 {
-    vm.chunk = chunk;
-    vm.ip = vm.chunk->code;
-    return run();
+    compile(source);
+    return interpret_ok;
 }
 
 void push(Value value)
