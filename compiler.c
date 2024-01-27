@@ -42,9 +42,9 @@ typedef struct
     Function   prefix;
     Function   infix;
     Precedence precedence;
-} Parse_rule;
+} Rule;
 
-static Parse_rule* get_rule(Token_type type);
+static Rule* get_rule(Token_type type);
 
 Parser parser;
 Chunk* compiling_chunk;
@@ -169,12 +169,12 @@ static void end_compiler()
 static void parse(Precedence precedence)
 {
     advance();
-    Parse_rule* current = get_rule(parser.previous.type);
+    Rule* current = get_rule(parser.previous.type);
     Function prefix = current->prefix;
     if (prefix != NULL)
     {
         prefix();
-        Parse_rule* next = get_rule(parser.current.type);
+        Rule* next = get_rule(parser.current.type);
         while (precedence <= next->precedence)
         {
             advance();
@@ -218,7 +218,7 @@ static void unary()
 static void binary()
 {
     Token_type operator = parser.previous.type;
-    Parse_rule* rule = get_rule(operator);
+    Rule* rule = get_rule(operator);
     Precedence precedence = (Precedence)(rule->precedence + 1);
     parse(precedence);
     switch (operator)
@@ -246,7 +246,7 @@ static void number()
     emit_constant(value);
 }
 
-Parse_rule rules[] =
+Rule rules[] =
 {
     [token_left_paren]    = { grouping, NULL,   prec_none   },
     [token_right_paren]   = { NULL,     NULL,   prec_none   },
@@ -290,7 +290,7 @@ Parse_rule rules[] =
     [token_eof]           = { NULL,     NULL,   prec_none   }
 };
 
-static Parse_rule* get_rule(Token_type type)
+static Rule* get_rule(Token_type type)
 {
     return &rules[type];
 }
