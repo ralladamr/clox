@@ -1,9 +1,9 @@
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 
 #include "chunk.h"
 #include "compiler.h"
-#include "debug.h"
 #include "value.h"
 #include "vm.h"
 
@@ -122,8 +122,23 @@ void free_VM()
 
 Interpret_result interpret(const char* source)
 {
-    compile(source);
-    return interpret_ok;
+    Chunk chunk;
+    init_chunk(&chunk);
+    bool compiled = compile(source, &chunk);
+    Interpret_result result;
+    if (!compiled)
+    {
+        result = interpret_compile_error;
+    }
+    else
+    {
+        vm.chunk = &chunk;
+        vm.ip = vm.chunk->code;
+        result = run();
+    }
+    
+    free_chunk(&chunk);
+    return result;
 }
 
 void push(Value value)
