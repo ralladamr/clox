@@ -59,4 +59,7 @@ x64/
 
 # Linux
 TAGS
+tags
 *~
+*.swp
+clox
