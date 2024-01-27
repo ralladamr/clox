@@ -56,3 +56,6 @@ dkms.conf
 *.sln
 *.vcxproj*
 x64/
+
+# Linux
+TAGS
