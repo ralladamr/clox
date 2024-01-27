@@ -24,4 +24,4 @@ Value* grow_array_value(void* pointer,
                         int   old,
                         int   new);
 
-#endif clox_memory
+#endif
