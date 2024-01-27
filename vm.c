@@ -7,6 +7,10 @@
 #include "value.h"
 #include "vm.h"
 
+#ifdef DEBUG_TRACE_EXECUTION
+#include "debug.h"
+#endif
+
 VM vm;
 
 static inline uint8_t read_byte()
