@@ -126,7 +126,7 @@ static Token_type check_keyword(int         start,
                                 Token_type  expected)
 {
     Token_type type = token_identifier;
-    if (position() == (size_t)start + length)
+    if (position() == start + length)
     {
         int result = memcmp(scanner.start + start, rest, (size_t)length);
         if (result == 0)
