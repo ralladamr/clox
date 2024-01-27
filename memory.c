@@ -1,12 +1,11 @@
+#include <malloc.h>
 #include <stdint.h>
 #include <stdlib.h>
 
 #include "memory.h"
 #include "value.h"
 
-static void* reallocate(void*  pointer,
-                        size_t old,
-                        size_t new)
+static void* reallocate(void* pointer, size_t old, size_t new)
 {
     if (new == 0)
     {
@@ -41,9 +40,7 @@ Value* free_array_value(void* pointer, int count)
     return (Value*)reallocate(pointer, size, 0);
 }
 
-int* grow_array_int(void* pointer,
-                    int   old,
-                    int   new)
+int* grow_array_int(void* pointer, int old, int new)
 {
     size_t old_size = sizeof(int) * old;
     size_t new_size = sizeof(int) * new;
@@ -51,18 +48,14 @@ int* grow_array_int(void* pointer,
 
 }
 
-uint8_t* grow_array_uint8_t(void* pointer,
-                            int   old,
-                            int   new)
+uint8_t* grow_array_uint8_t(void* pointer, int old, int new)
 {
     size_t old_size = sizeof(uint8_t) * old;
     size_t new_size = sizeof(uint8_t) * new;
     return (uint8_t*)reallocate(pointer, old_size, new_size);
 }
 
-Value* grow_array_value(void* pointer,
-                        int   old,
-                        int   new)
+Value* grow_array_value(void* pointer, int old, int new)
 {
     size_t old_size = sizeof(Value) * old;
     size_t new_size = sizeof(Value) * new;

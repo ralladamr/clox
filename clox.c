@@ -53,7 +53,7 @@ static char* read_file(const char* path)
         exit(74);
     }
     buffer[bytes] = '\0';
-    
+
     // Cleanup.
     fclose(file);
     return buffer;

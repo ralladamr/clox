@@ -15,7 +15,7 @@ typedef struct
     Value_type type;
     union
     {
-        bool   boolean;
+        bool boolean;
         double number;
     } as;
 } Value;
@@ -47,26 +47,26 @@ static inline double as_number(Value value)
 
 static inline Value bool_value(bool value)
 {
-    Value v = { val_bool, { .boolean = value } };
+    Value v = { val_bool, {.boolean = value } };
     return v;
 }
 
 static inline Value nil_value()
 {
-    Value v = { val_nil, { .number = 0 } };
+    Value v = { val_nil, {.number = 0 } };
     return v;
 }
 
 static inline Value number_value(double value)
 {
-    Value v = { val_number, { .number = value } };
+    Value v = { val_number, {.number = value } };
     return v;
 }
 
 typedef struct
 {
-    int    capacity;
-    int    count;
+    int capacity;
+    int count;
     Value* values;
 } Value_array;
 

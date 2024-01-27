@@ -17,19 +17,19 @@ bool values_equal(Value a, Value b)
     bool result = false;
     if (a.type == b.type)
     {
-        switch(a.type)
+        switch (a.type)
         {
-            case val_bool:
-                result = as_bool(a) == as_bool(b);
-                break;
-            case val_nil:
-                result = true;
-                break;
-            case val_number:
-                result = as_number(a) == as_number(b);
-                break;
-            default:
-                break;
+        case val_bool:
+            result = as_bool(a) == as_bool(b);
+            break;
+        case val_nil:
+            result = true;
+            break;
+        case val_number:
+            result = as_number(a) == as_number(b);
+            break;
+        default:
+            break;
         }
     }
     return result;
@@ -61,16 +61,16 @@ void write_value_array(Value_array* array, Value value)
 
 void print_value(Value value)
 {
-    switch(value.type)
+    switch (value.type)
     {
-        case val_bool:
-            printf(as_bool(value) ? "true" : "false");
-            break;
-        case val_nil:
-            printf("nil");
-            break;
-        case val_number:
-            printf("%g", as_number(value));
-            break;
+    case val_bool:
+        printf(as_bool(value) ? "true" : "false");
+        break;
+    case val_nil:
+        printf("nil");
+        break;
+    case val_number:
+        printf("%g", as_number(value));
+        break;
     }
 }

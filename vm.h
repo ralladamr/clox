@@ -13,10 +13,10 @@ enum Stack_parameter
 
 typedef struct
 {
-    Chunk*   chunk;
+    Chunk* chunk;
     uint8_t* ip;
-    Value    stack[stack_max];
-    Value*   stack_top;
+    Value stack[stack_max];
+    Value* stack_top;
 } VM;
 
 typedef enum

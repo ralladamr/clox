@@ -56,14 +56,14 @@ typedef enum
 
 typedef struct
 {
-    Token_type  type;
+    Token_type type;
     const char* start;
-    int         length;
-    int         line;
+    int length;
+    int line;
 } Token;
 
 void init_scanner(const char* source);
 Token scan_token();
 
-#endif // !clox_scanner
+#endif
 
