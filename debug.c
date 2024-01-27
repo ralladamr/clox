@@ -58,6 +58,24 @@ int disassemble_instruction(Chunk* chunk, int offset)
         case op_constant:
             next = constant_instruction("OP_CONSTANT", chunk, offset);
             break;
+        case op_nil:
+            next = simple_instruction("OP_NIL", offset);
+            break;
+        case op_true:
+            next = simple_instruction("OP_TRUE", offset);
+            break;
+        case op_false:
+            next = simple_instruction("OP_FALSE", offset);
+            break;
+        case op_equal:
+            next = simple_instruction("OP_EQUAL", offset);
+            break;
+        case op_greater:
+            next = simple_instruction("OP_GREATER", offset);
+            break;
+        case op_less:
+            next = simple_instruction("OP_LESS", offset);
+            break;
         case op_negate:
             next = simple_instruction("OP_NEGATE", offset);
             break;
@@ -72,6 +90,9 @@ int disassemble_instruction(Chunk* chunk, int offset)
             break;
         case op_divide:
             next = simple_instruction("OP_DIVIDE", offset);
+            break;
+        case op_not:
+            next = simple_instruction("OP_NOT", offset);
             break;
         case op_return:
             next = simple_instruction("OP_RETURN", offset);

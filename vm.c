@@ -1,3 +1,4 @@
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -24,40 +25,89 @@ static inline Value read_constant()
     return vm.chunk->constants.values[byte];
 }
 
-static void unary_op(Op_code op)
+static Value peek(int distance)
 {
-    Value a = pop();
+    return vm.stack_top[-1 - distance];
+}
+
+static bool is_falsey(Value value)
+{
+    return is_nil(value) || (is_bool(value) && !as_bool(value));
+}
+
+static void reset_stack()
+{
+    vm.stack_top = vm.stack;
+}
+
+static void runtime_error(const char* format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    vfprintf(stderr, format, args);
+    va_end(args);
+    fputs("\n", stderr);
+
+    size_t instruction = vm.ip - vm.chunk->code - 1;
+    int line = vm.chunk->lines[instruction];
+    fprintf(stderr, "[line %d] in script\n", line);
+    reset_stack();
+}
+
+static Interpret_result unary_op(Op_code op)
+{
+    Interpret_result result = interpret_continue;
     switch (op)
     {
         case op_negate:
-            push(-a);
+            if (!is_number(peek(0)))
+            {
+                runtime_error("Operand must be a number.");
+                result = interpret_runtime_error;
+            }
+            double val = -as_number(pop());
+            push(number_value(val));
             break;
         default:
             break;
     }
+    return result;
 }
 
-static void binary_op(Op_code op)
+static Interpret_result binary_op(Op_code op)
 {
-    Value b = pop();
-    Value a = pop();
+    Interpret_result result = interpret_continue;
+    if (!is_number(peek(0)) || !is_number(peek(1)))
+    {
+        runtime_error("Operands must be numbers.");
+        result = interpret_runtime_error;
+    }
+
+    double b = as_number(pop());
+    double a = as_number(pop());
     switch (op)
     {
         case op_add:
-            push(a + b);
+            push(number_value(a + b));
             break;
         case op_subtract:
-            push(a - b);
+            push(number_value(a - b));
             break;
         case op_multiply:
-            push(a * b);
+            push(number_value(a * b));
             break;
         case op_divide:
-            push(a / b);
+            push(number_value(a / b));
             break;
+        case op_greater:
+            push(bool_value(a > b));
+            break;
+        case op_less:
+            push(bool_value(a < b));
         default:
             break;
     }
+    return result;
 }
 
 static Interpret_result run()
@@ -81,17 +131,37 @@ static Interpret_result run()
         switch (instruction)
         {
             case op_constant:
-                Value constant = read_constant();
-                push(constant);
+                push(read_constant());
                 break;
+            case op_nil:
+                push(nil_value());
+                break;
+            case op_true:
+                push(bool_value(true));
+                break;
+            case op_false:
+                push(bool_value(false));
+                break;
+            case op_equal:
+                {
+                    Value b = pop();
+                    Value a = pop();
+                    push(bool_value(values_equal(a, b)));
+                    break;
+                }
             case op_negate:
-                unary_op(instruction);
+                result = unary_op(instruction);
                 break;
+            case op_greater:
+            case op_less:
             case op_add:
             case op_subtract:
             case op_multiply:
             case op_divide:
-                binary_op(instruction);
+                result = binary_op(instruction);
+                break;
+            case op_not:
+                push(bool_value(is_falsey(pop())));
                 break;
             case op_return:
                 print_value(pop());
@@ -103,11 +173,6 @@ static Interpret_result run()
         }
     }
     return result;
-}
-
-static void reset_stack()
-{
-    vm.stack_top = vm.stack;
 }
 
 void init_VM()

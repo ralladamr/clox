@@ -207,6 +207,9 @@ static void unary()
     parse(prec_unary);
     switch (operator)
     {
+        case token_bang:
+            emit_byte(op_not);
+            break;
         case token_minus:
             emit_byte(op_negate);
             break;
@@ -223,6 +226,24 @@ static void binary()
     parse(precedence);
     switch (operator)
     {
+        case token_bang_equal:
+            emit_bytes(op_equal, op_not);
+            break;
+        case token_equal_equal:
+            emit_byte(op_equal);
+            break;
+        case token_greater:
+            emit_byte(op_greater);
+            break;
+        case token_greater_equal:
+            emit_bytes(op_less, op_not);
+            break;
+        case token_less:
+            emit_byte(op_less);
+            break;
+        case token_less_equal:
+            emit_bytes(op_greater, op_not);
+            break;
         case token_plus:
             emit_byte(op_add);
             break;
@@ -240,54 +261,73 @@ static void binary()
     }
 }
 
+static void literal()
+{
+    Token_type operator = parser.previous.type;
+    switch(operator)
+    {
+        case token_false:
+            emit_byte(op_false);
+            break;
+        case token_nil:
+            emit_byte(op_nil);
+            break;
+        case token_true:
+            emit_byte(op_true);
+            break;
+        default:
+            break;
+    }
+}
+
 static void number()
 {
-    Value value = (Value)strtod(parser.previous.start, NULL);
-    emit_constant(value);
+    double value = strtod(parser.previous.start, NULL);
+    emit_constant(number_value(value));
 }
 
 Rule rules[] =
 {
-    [token_left_paren]    = { grouping, NULL,   prec_none   },
-    [token_right_paren]   = { NULL,     NULL,   prec_none   },
-    [token_left_brace]    = { NULL,     NULL,   prec_none   },
-    [token_right_brace]   = { NULL,     NULL,   prec_none   },
-    [token_comma]         = { NULL,     NULL,   prec_none   },
-    [token_dot]           = { NULL,     NULL,   prec_none   },
-    [token_minus]         = { unary,    binary, prec_term   },
-    [token_plus]          = { NULL,     binary, prec_term   },
-    [token_semicolon]     = { NULL,     NULL,   prec_none   },
-    [token_slash]         = { NULL,     binary, prec_factor },
-    [token_star]          = { NULL,     binary, prec_factor },
-    [token_bang]          = { NULL,     NULL,   prec_none   },
-    [token_bang_equal]    = { NULL,     NULL,   prec_none   },
-    [token_equal]         = { NULL,     NULL,   prec_none   },
-    [token_equal_equal]   = { NULL,     NULL,   prec_none   },
-    [token_greater]       = { NULL,     NULL,   prec_none   },
-    [token_greater_equal] = { NULL,     NULL,   prec_none   },
-    [token_less]          = { NULL,     NULL,   prec_none   },
-    [token_less_equal]    = { NULL,     NULL,   prec_none   },
-    [token_identifier]    = { NULL,     NULL,   prec_none   },
-    [token_string]        = { NULL,     NULL,   prec_none   },
-    [token_number]        = { number,   NULL,   prec_none   },
-    [token_and]           = { NULL,     NULL,   prec_none   },
-    [token_class]         = { NULL,     NULL,   prec_none   },
-    [token_else]          = { NULL,     NULL,   prec_none   },
-    [token_false]         = { NULL,     NULL,   prec_none   },
-    [token_for]           = { NULL,     NULL,   prec_none   },
-    [token_fun]           = { NULL,     NULL,   prec_none   },
-    [token_if]            = { NULL,     NULL,   prec_none   },
-    [token_nil]           = { NULL,     NULL,   prec_none   },
-    [token_or]            = { NULL,     NULL,   prec_none   },
-    [token_print]         = { NULL,     NULL,   prec_none   },
-    [token_return]        = { NULL,     NULL,   prec_none   },
-    [token_super]         = { NULL,     NULL,   prec_none   },
-    [token_this]          = { NULL,     NULL,   prec_none   },
-    [token_true]          = { NULL,     NULL,   prec_none   },
-    [token_var]           = { NULL,     NULL,   prec_none   },
-    [token_while]         = { NULL,     NULL,   prec_none   },
-    [token_error]         = { NULL,     NULL,   prec_none   },
-    [token_eof]           = { NULL,     NULL,   prec_none   }
+    [token_left_paren]    = { grouping, NULL,   prec_none       },
+    [token_right_paren]   = { NULL,     NULL,   prec_none       },
+    [token_left_brace]    = { NULL,     NULL,   prec_none       },
+    [token_right_brace]   = { NULL,     NULL,   prec_none       },
+    [token_comma]         = { NULL,     NULL,   prec_none       },
+    [token_dot]           = { NULL,     NULL,   prec_none       },
+    [token_minus]         = { unary,    binary, prec_term       },
+    [token_plus]          = { NULL,     binary, prec_term       },
+    [token_semicolon]     = { NULL,     NULL,   prec_none       },
+    [token_slash]         = { NULL,     binary, prec_factor     },
+    [token_star]          = { NULL,     binary, prec_factor     },
+    [token_bang]          = { unary,    NULL,   prec_none       },
+    [token_bang_equal]    = { NULL,     binary, prec_equality   },
+    [token_equal]         = { NULL,     NULL,   prec_none       },
+    [token_equal_equal]   = { NULL,     binary, prec_equality   },
+    [token_greater]       = { NULL,     binary, prec_comparison },
+    [token_greater_equal] = { NULL,     binary, prec_comparison },
+    [token_less]          = { NULL,     binary, prec_comparison },
+    [token_less_equal]    = { NULL,     binary, prec_comparison },
+    [token_identifier]    = { NULL,     NULL,   prec_none       },
+    [token_string]        = { NULL,     NULL,   prec_none       },
+    [token_number]        = { number,   NULL,   prec_none       },
+    [token_and]           = { NULL,     NULL,   prec_none       },
+    [token_class]         = { NULL,     NULL,   prec_none       },
+    [token_else]          = { NULL,     NULL,   prec_none       },
+    [token_false]         = { literal,  NULL,   prec_none       },
+    [token_for]           = { NULL,     NULL,   prec_none       },
+    [token_fun]           = { NULL,     NULL,   prec_none       },
+    [token_if]            = { NULL,     NULL,   prec_none       },
+    [token_nil]           = { literal,  NULL,   prec_none       },
+    [token_or]            = { NULL,     NULL,   prec_none       },
+    [token_print]         = { NULL,     NULL,   prec_none       },
+    [token_return]        = { NULL,     NULL,   prec_none       },
+    [token_super]         = { NULL,     NULL,   prec_none       },
+    [token_this]          = { NULL,     NULL,   prec_none       },
+    [token_true]          = { literal,  NULL,   prec_none       },
+    [token_var]           = { NULL,     NULL,   prec_none       },
+    [token_while]         = { NULL,     NULL,   prec_none       },
+    [token_error]         = { NULL,     NULL,   prec_none       },
+    [token_eof]           = { NULL,     NULL,   prec_none       }
 };
 
 static Rule* get_rule(Token_type type)
