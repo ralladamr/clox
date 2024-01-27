@@ -3,44 +3,93 @@
 #include <stdlib.h>
 
 #include "memory.h"
+#include "object.h"
 #include "value.h"
+#include "vm.h"
 
 static void* reallocate(void* pointer, size_t old, size_t new)
 {
+    void* result;
     if (new == 0)
     {
         free(pointer);
-        return NULL;
+        result = NULL;
     }
-
-    void* result = realloc(pointer, new);
-    if (result == NULL)
+    else
     {
-        exit(1);
+        result = realloc(pointer, new);
+        if (result == NULL)
+        {
+            exit(1);
+        }
     }
-
     return result;
 }
 
-int* free_array_int(void* pointer, int count)
+static void free_obj_string(Obj_string* pointer)
+{
+    reallocate(pointer, sizeof(Obj_string), 0);
+}
+
+static void free_obj(Obj* obj)
+{
+    switch (obj->type)
+    {
+    case obj_string:
+        Obj_string* string = (Obj_string*)obj;
+        free_array_char(string->chars, string->length + 1);
+        free_obj_string(string);
+    default:
+        break;
+    }
+}
+
+char* allocate_char(int count)
+{
+    return (char*)reallocate(NULL, 0, sizeof(char) * count);
+}
+
+void* allocate_void(size_t size)
+{
+    return reallocate(NULL, 0, size);
+}
+
+void free_array_char(char* pointer, int count)
+{
+    size_t size = sizeof(char) * count;
+    reallocate(pointer, size, 0);
+}
+
+void free_array_int(int* pointer, int count)
 {
     size_t size = sizeof(int) * count;
-    return (int*)reallocate(pointer, size, 0);
+    reallocate(pointer, size, 0);
 }
 
-uint8_t* free_array_uint8_t(void* pointer, int count)
+void free_array_uint8_t(uint8_t* pointer, int count)
 {
     size_t size = sizeof(uint8_t) * count;
-    return (uint8_t*)reallocate(pointer, size, 0);
+    reallocate(pointer, size, 0);
 }
 
-Value* free_array_value(void* pointer, int count)
+void free_array_value(Value* pointer, int count)
 {
     size_t size = sizeof(Value) * count;
-    return (Value*)reallocate(pointer, size, 0);
+    reallocate(pointer, size, 0);
 }
 
-int* grow_array_int(void* pointer, int old, int new)
+void free_objects()
+{
+    Obj* obj = vm.objects;
+    while (obj != NULL)
+    {
+        Obj* next = obj->next;
+        free_obj(obj);
+        obj = next;
+    }
+}
+
+int* grow_array_int(int* pointer, int old, int new)
 {
     size_t old_size = sizeof(int) * old;
     size_t new_size = sizeof(int) * new;
@@ -48,14 +97,14 @@ int* grow_array_int(void* pointer, int old, int new)
 
 }
 
-uint8_t* grow_array_uint8_t(void* pointer, int old, int new)
+uint8_t* grow_array_uint8_t(uint8_t* pointer, int old, int new)
 {
     size_t old_size = sizeof(uint8_t) * old;
     size_t new_size = sizeof(uint8_t) * new;
     return (uint8_t*)reallocate(pointer, old_size, new_size);
 }
 
-Value* grow_array_value(void* pointer, int old, int new)
+Value* grow_array_value(Value* pointer, int old, int new)
 {
     size_t old_size = sizeof(Value) * old;
     size_t new_size = sizeof(Value) * new;

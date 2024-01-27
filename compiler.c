@@ -5,6 +5,7 @@
 
 #include "chunk.h"
 #include "compiler.h"
+#include "object.h"
 #include "scanner.h"
 #include "value.h"
 
@@ -287,6 +288,14 @@ static void number()
     emit_constant(number_value(value));
 }
 
+static void string()
+{
+    const char* chars = parser.previous.start + 1;
+    int length = parser.previous.length - 2;
+    Obj_string* string = copy_string(chars, length);
+    emit_constant(obj_value((Obj*)string));
+}
+
 Rule rules[] =
 {
     [token_left_paren] = { grouping, NULL, prec_none },
@@ -309,7 +318,7 @@ Rule rules[] =
     [token_less] = { NULL, binary, prec_comparison },
     [token_less_equal] = { NULL, binary, prec_comparison },
     [token_identifier] = { NULL, NULL, prec_none },
-    [token_string] = { NULL, NULL, prec_none },
+    [token_string] = { string, NULL, prec_none },
     [token_number] = { number, NULL, prec_none },
     [token_and] = { NULL, NULL, prec_none },
     [token_class] = { NULL, NULL, prec_none },

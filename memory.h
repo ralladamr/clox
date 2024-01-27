@@ -10,12 +10,17 @@ static inline int grow_capacity(int capacity)
     return capacity < 8 ? 8 : (capacity * 2);
 }
 
-int* free_array_int(void* pointer, int count);
-uint8_t* free_array_uint8_t(void* pointer, int count);
-Value* free_array_value(void* pointer, int count);
+char* allocate_char(int count);
+void* allocate_void(size_t size);
 
-int* grow_array_int(void* pointer, int old, int new);
-uint8_t* grow_array_uint8_t(void* pointer, int old, int new);
-Value* grow_array_value(void* pointer, int old, int new);
+void free_array_char(char* pointer, int count);
+void free_array_int(int* pointer, int count);
+void free_array_uint8_t(uint8_t* pointer, int count);
+void free_array_value(Value* pointer, int count);
+void free_objects();
+
+int* grow_array_int(int* pointer, int old, int new);
+uint8_t* grow_array_uint8_t(uint8_t* pointer, int old, int new);
+Value* grow_array_value(Value* pointer, int old, int new);
 
 #endif

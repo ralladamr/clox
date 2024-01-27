@@ -1,7 +1,9 @@
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "memory.h"
+#include "object.h"
 #include "value.h"
 
 static void grow(Value_array* array)
@@ -27,6 +29,13 @@ bool values_equal(Value a, Value b)
         case val_number:
             result = as_number(a) == as_number(b);
             break;
+        case val_obj:
+        {
+            Obj_string* as = as_string(a);
+            Obj_string* bs = as_string(b);
+            result = (as->length == bs->length) &&
+                (memcmp(as->chars, bs->chars, as->length) == 0);
+        }
         default:
             break;
         }
@@ -70,6 +79,9 @@ void print_value(Value value)
         break;
     case val_number:
         printf("%g", as_number(value));
+        break;
+    case val_obj:
+        print_obj(value);
         break;
     }
 }

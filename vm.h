@@ -17,7 +17,10 @@ typedef struct
     uint8_t* ip;
     Value stack[stack_max];
     Value* stack_top;
+    Obj* objects;
 } VM;
+
+extern VM vm;
 
 typedef enum
 {

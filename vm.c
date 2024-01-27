@@ -2,10 +2,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <vadefs.h>
 
 #include "chunk.h"
 #include "compiler.h"
+#include "object.h"
+#include "memory.h"
 #include "value.h"
 #include "vm.h"
 
@@ -75,7 +78,7 @@ static Interpret_result unary_op(Op_code op)
     return result;
 }
 
-static Interpret_result binary_op(Op_code op)
+static Interpret_result binary_op_number(Op_code op)
 {
     Interpret_result result = interpret_continue;
     if (!is_number(peek(0)) || !is_number(peek(1)))
@@ -83,30 +86,64 @@ static Interpret_result binary_op(Op_code op)
         runtime_error("Operands must be numbers.");
         result = interpret_runtime_error;
     }
-
-    double b = as_number(pop());
-    double a = as_number(pop());
-    switch (op)
+    else
     {
-    case op_add:
-        push(number_value(a + b));
-        break;
-    case op_subtract:
-        push(number_value(a - b));
-        break;
-    case op_multiply:
-        push(number_value(a * b));
-        break;
-    case op_divide:
-        push(number_value(a / b));
-        break;
-    case op_greater:
-        push(bool_value(a > b));
-        break;
-    case op_less:
-        push(bool_value(a < b));
-    default:
-        break;
+        double b = as_number(pop());
+        double a = as_number(pop());
+        switch (op)
+        {
+        case op_add:
+            push(number_value(a + b));
+            break;
+        case op_subtract:
+            push(number_value(a - b));
+            break;
+        case op_multiply:
+            push(number_value(a * b));
+            break;
+        case op_divide:
+            push(number_value(a / b));
+            break;
+        case op_greater:
+            push(bool_value(a > b));
+            break;
+        case op_less:
+            push(bool_value(a < b));
+        default:
+            break;
+        }
+    }
+    return result;
+}
+
+static void concatenate()
+{
+    Obj_string* b = as_string(pop());
+    Obj_string* a = as_string(pop());
+    int length = a->length + b->length;
+    char* chars = allocate_char(length + 1);
+    memcpy(chars, a->chars, a->length);
+    memcpy(chars + a->length, b->chars, b->length);
+    chars[length] = '\0';
+    Obj_string* result = take_string(chars, length);
+    push(obj_value((Obj*)result));
+}
+
+static Interpret_result add()
+{
+    Interpret_result result = interpret_continue;
+    if (is_string(peek(0)) && is_string(peek(1)))
+    {
+        concatenate();
+    }
+    else if (!is_number(peek(0)) || !is_number(peek(1)))
+    {
+        runtime_error("Operands must be two numbers or two strings.");
+        result = interpret_runtime_error;
+    }
+    else
+    {
+        result = binary_op_number(op_add);
     }
     return result;
 }
@@ -127,7 +164,6 @@ static Interpret_result run()
         printf("\n");
         disassemble_instruction(vm.chunk, (int)(vm.ip - vm.chunk->code));
 #endif
-
         uint8_t instruction = read_byte();
         switch (instruction)
         {
@@ -153,13 +189,15 @@ static Interpret_result run()
         case op_negate:
             result = unary_op(instruction);
             break;
+        case op_add:
+            result = add();
+            break;
         case op_greater:
         case op_less:
-        case op_add:
         case op_subtract:
         case op_multiply:
         case op_divide:
-            result = binary_op(instruction);
+            result = binary_op_number(instruction);
             break;
         case op_not:
             push(bool_value(is_falsey(pop())));
@@ -179,11 +217,12 @@ static Interpret_result run()
 void init_VM()
 {
     reset_stack();
+    vm.objects = NULL;
 }
 
 void free_VM()
 {
-
+    free_objects();
 }
 
 Interpret_result interpret(const char* source)
