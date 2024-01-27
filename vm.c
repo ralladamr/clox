@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <vadefs.h>
 
 #include "chunk.h"
 #include "compiler.h"
