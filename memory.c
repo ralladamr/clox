@@ -37,9 +37,11 @@ static void free_object(Object* object)
     switch (object->type)
     {
     case obj_string:
-        String* string = (String*)object;
-        free_array_char(string->chars, string->length + 1);
-        free_string(string);
+        {
+            String* string = (String*)object;
+            free_array_char(string->chars, string->length + 1);
+            free_string(string);
+        }
     default:
         break;
     }

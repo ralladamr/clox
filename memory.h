@@ -1,6 +1,7 @@
 #ifndef clox_memory
 #define clox_memory
 
+#include <stddef.h>
 #include <stdint.h>
 
 #include "table.h"

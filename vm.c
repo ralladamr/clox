@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <vadefs.h>
 
 #include "chunk.h"
 #include "compiler.h"
@@ -203,9 +202,11 @@ static Interpret_result run()
         case op_not:
             push(bool_value(is_falsey(pop())));
             break;
-        case op_return:
+        case op_print:
             print_value(pop());
             printf("\n");
+            break;
+        case op_return:
             result = interpret_ok;
             break;
         default:

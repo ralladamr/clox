@@ -92,6 +92,9 @@ int disassemble_instruction(Chunk* chunk, int offset)
     case op_not:
         next = simple_instruction("OP_NOT", offset);
         break;
+    case op_print:
+        next = simple_instruction("OP_PRINT", offset);
+        break;
     case op_return:
         next = simple_instruction("OP_RETURN", offset);
         break;
