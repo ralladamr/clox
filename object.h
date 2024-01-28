@@ -29,7 +29,7 @@ static inline Object_type object_type(Value value)
 
 typedef struct String
 {
-    Object obj;
+    Object object;
     int length;
     char* chars;
     uint32_t hash;
