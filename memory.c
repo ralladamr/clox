@@ -10,6 +10,7 @@
 
 static void* reallocate(void* pointer, size_t old, size_t new)
 {
+    (void)old;
     void* result;
     if (new == 0)
     {

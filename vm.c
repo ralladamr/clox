@@ -29,6 +29,11 @@ static inline Value read_constant()
     return vm.chunk->constants.values[byte];
 }
 
+static inline String* read_string()
+{
+    return as_string(read_constant());
+}
+
 static Value peek(int distance)
 {
     return vm.stack_top[-1 - distance];
@@ -179,13 +184,47 @@ static Interpret_result run()
         case op_false:
             push(bool_value(false));
             break;
-        case op_equal:
-        {
-            Value b = pop();
-            Value a = pop();
-            push(bool_value(values_equal(a, b)));
+        case op_pop:
+            pop();
             break;
-        }
+        case op_get_global:
+            {
+                String* name = read_string();
+                Value value;
+                if (!table_get(&vm.globals, name, &value))
+                {
+                    runtime_error("Undefined variable '%s'.", name->chars);
+                    result = interpret_runtime_error;
+                }
+                push(value);
+                break;
+            }
+        case op_define_global:
+            {
+                String* name = read_string();
+                table_set(&vm.globals, name, peek(0));
+                pop();
+                break;
+            }
+        case op_set_global:
+            {
+                String* name = read_string();
+                bool is_new = table_set(&vm.globals, name, peek(0));
+                if (is_new)
+                {
+                    table_delete(&vm.globals, name);
+                    runtime_error("Undefined variable '%s'.", name->chars);
+                    result = interpret_runtime_error;
+                }
+                break;
+            }
+        case op_equal:
+            {
+                Value b = pop();
+                Value a = pop();
+                push(bool_value(values_equal(a, b)));
+                break;
+            }
         case op_negate:
             result = unary_op(instruction);
             break;
@@ -220,11 +259,13 @@ void init_VM()
 {
     reset_stack();
     vm.objects = NULL;
+    init_table(&vm.globals);
     init_table(&vm.strings);
 }
 
 void free_VM()
 {
+    free_table(&vm.globals);
     free_table(&vm.strings);
     free_objects();
 }

@@ -65,6 +65,18 @@ int disassemble_instruction(Chunk* chunk, int offset)
     case op_false:
         next = simple_instruction("OP_FALSE", offset);
         break;
+    case op_pop:
+        next = simple_instruction("OP_POP", offset);
+        break;
+    case op_get_global:
+        next = constant_instruction("OP_GET_GLOBAL", chunk, offset);
+        break;
+    case op_define_global:
+        next = constant_instruction("OP_DEFINE_GLOBAL", chunk, offset);
+        break;
+    case op_set_global:
+        next = constant_instruction("OP_SET_GLOBAL", chunk, offset);
+        break;
     case op_equal:
         next = simple_instruction("OP_EQUAL", offset);
         break;
