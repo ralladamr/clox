@@ -4,6 +4,7 @@
 
 #include "memory.h"
 #include "object.h"
+#include "table.h"
 #include "value.h"
 #include "vm.h"
 
@@ -49,6 +50,11 @@ char* allocate_char(int count)
     return (char*)reallocate(NULL, 0, sizeof(char) * count);
 }
 
+Entry* allocate_entry(int count)
+{
+    return (Entry*)reallocate(NULL, 0, sizeof(Entry) * count);
+}
+
 void* allocate_void(size_t size)
 {
     return reallocate(NULL, 0, size);
@@ -57,6 +63,12 @@ void* allocate_void(size_t size)
 void free_array_char(char* pointer, int count)
 {
     size_t size = sizeof(char) * count;
+    reallocate(pointer, size, 0);
+}
+
+void free_array_entry(Entry* pointer, int count)
+{
+    size_t size = sizeof(Entry) * count;
     reallocate(pointer, size, 0);
 }
 

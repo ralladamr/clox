@@ -4,6 +4,7 @@
 #include <stdint.h>
 
 #include "chunk.h"
+#include "table.h"
 #include "value.h"
 
 enum Stack_parameter
@@ -17,6 +18,7 @@ typedef struct
     uint8_t* ip;
     Value stack[stack_max];
     Value* stack_top;
+    Table strings;
     Obj* objects;
 } VM;
 

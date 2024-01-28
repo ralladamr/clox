@@ -7,8 +7,9 @@
 
 #include "chunk.h"
 #include "compiler.h"
-#include "object.h"
 #include "memory.h"
+#include "object.h"
+#include "table.h"
 #include "value.h"
 #include "vm.h"
 
@@ -218,10 +219,12 @@ void init_VM()
 {
     reset_stack();
     vm.objects = NULL;
+    init_table(&vm.strings);
 }
 
 void free_VM()
 {
+    free_table(&vm.strings);
     free_objects();
 }
 

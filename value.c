@@ -31,10 +31,8 @@ bool values_equal(Value a, Value b)
             break;
         case val_obj:
         {
-            Obj_string* as = as_string(a);
-            Obj_string* bs = as_string(b);
-            result = (as->length == bs->length) &&
-                (memcmp(as->chars, bs->chars, as->length) == 0);
+            result = as_obj(a) == as_obj(b);
+            break;
         }
         default:
             break;
