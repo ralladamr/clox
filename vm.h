@@ -19,7 +19,7 @@ typedef struct
     Value stack[stack_max];
     Value* stack_top;
     Table strings;
-    Obj* objects;
+    Object* objects;
 } VM;
 
 extern VM vm;

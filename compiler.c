@@ -292,8 +292,8 @@ static void string()
 {
     const char* chars = parser.previous.start + 1;
     int length = parser.previous.length - 2;
-    Obj_string* string = copy_string(chars, length);
-    emit_constant(obj_value((Obj*)string));
+    String* string = copy_string(chars, length);
+    emit_constant(object_value((Object*)string));
 }
 
 Rule rules[] =

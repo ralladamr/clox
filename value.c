@@ -29,9 +29,9 @@ bool values_equal(Value a, Value b)
         case val_number:
             result = as_number(a) == as_number(b);
             break;
-        case val_obj:
+        case val_object:
         {
-            result = as_obj(a) == as_obj(b);
+            result = as_object(a) == as_object(b);
             break;
         }
         default:
@@ -78,8 +78,8 @@ void print_value(Value value)
     case val_number:
         printf("%g", as_number(value));
         break;
-    case val_obj:
-        print_obj(value);
+    case val_object:
+        print_object(value);
         break;
     }
 }

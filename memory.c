@@ -27,17 +27,17 @@ static void* reallocate(void* pointer, size_t old, size_t new)
     return result;
 }
 
-static void free_obj_string(Obj_string* pointer)
+static void free_obj_string(String* pointer)
 {
-    reallocate(pointer, sizeof(Obj_string), 0);
+    reallocate(pointer, sizeof(String), 0);
 }
 
-static void free_obj(Obj* obj)
+static void free_obj(Object* obj)
 {
     switch (obj->type)
     {
     case obj_string:
-        Obj_string* string = (Obj_string*)obj;
+        String* string = (String*)obj;
         free_array_char(string->chars, string->length + 1);
         free_obj_string(string);
     default:
@@ -92,12 +92,12 @@ void free_array_value(Value* pointer, int count)
 
 void free_objects()
 {
-    Obj* obj = vm.objects;
-    while (obj != NULL)
+    Object* object = vm.objects;
+    while (object != NULL)
     {
-        Obj* next = obj->next;
-        free_obj(obj);
-        obj = next;
+        Object* next = object->next;
+        free_obj(object);
+        object = next;
     }
 }
 

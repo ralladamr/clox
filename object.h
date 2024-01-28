@@ -9,40 +9,40 @@
 typedef enum
 {
     obj_string
-} Obj_type;
+} Object_type;
 
-typedef struct Obj
+typedef struct Object
 {
-    Obj_type type;
-    Obj* next;
-} Obj;
+    Object_type type;
+    Object* next;
+} Object;
 
-static inline bool is_obj_type(Value value, Obj_type type)
+static inline bool is_object_type(Value value, Object_type type)
 {
-    return is_obj(value) && as_obj(value)->type == type;
+    return is_object(value) && as_object(value)->type == type;
 }
 
-static inline Obj_type obj_type(Value value)
+static inline Object_type object_type(Value value)
 {
-    return as_obj(value)->type;
+    return as_object(value)->type;
 }
 
-typedef struct Obj_string
+typedef struct String
 {
-    Obj obj;
+    Object obj;
     int length;
     char* chars;
     uint32_t hash;
-} Obj_string;
+} String;
 
 static inline bool is_string(Value value)
 {
-    return is_obj_type(value, obj_string);
+    return is_object_type(value, obj_string);
 }
 
-static inline Obj_string* as_string(Value value)
+static inline String* as_string(Value value)
 {
-    return (Obj_string*)as_obj(value);
+    return (String*)as_object(value);
 }
 
 static inline char* as_cstring(Value value)
@@ -50,8 +50,8 @@ static inline char* as_cstring(Value value)
     return as_string(value)->chars;
 }
 
-Obj_string* take_string(char* chars, int length);
-Obj_string* copy_string(const char* chars, int length);
-void print_obj(Value value);
+String* take_string(char* chars, int length);
+String* copy_string(const char* chars, int length);
+void print_object(Value value);
 
 #endif

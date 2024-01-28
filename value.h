@@ -3,14 +3,14 @@
 
 #include <stdbool.h>
 
-typedef struct Obj Obj;
+typedef struct Object Object;
 
 typedef enum
 {
     val_bool,
     val_nil,
     val_number,
-    val_obj
+    val_object
 } Value_type;
 
 typedef struct
@@ -20,7 +20,7 @@ typedef struct
     {
         bool boolean;
         double number;
-        Obj* obj;
+        Object* object;
     } as;
 } Value;
 
@@ -39,9 +39,9 @@ static inline bool is_number(Value value)
     return value.type == val_number;
 }
 
-static inline bool is_obj(Value value)
+static inline bool is_object(Value value)
 {
-    return value.type == val_obj;
+    return value.type == val_object;
 }
 
 static inline bool as_bool(Value value)
@@ -54,9 +54,9 @@ static inline double as_number(Value value)
     return value.as.number;
 }
 
-static inline Obj* as_obj(Value value)
+static inline Object* as_object(Value value)
 {
-    return value.as.obj;
+    return value.as.object;
 }
 
 static inline Value bool_value(bool value)
@@ -77,9 +77,9 @@ static inline Value number_value(double value)
     return v;
 }
 
-static inline Value obj_value(Obj* object)
+static inline Value object_value(Object* object)
 {
-    Value v = { val_obj, {.obj = (Obj*)object } };
+    Value v = { val_object, {.object = (Object*)object } };
     return v;
 }
 

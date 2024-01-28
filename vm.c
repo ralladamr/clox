@@ -119,15 +119,15 @@ static Interpret_result binary_op_number(Op_code op)
 
 static void concatenate()
 {
-    Obj_string* b = as_string(pop());
-    Obj_string* a = as_string(pop());
+    String* b = as_string(pop());
+    String* a = as_string(pop());
     int length = a->length + b->length;
     char* chars = allocate_char(length + 1);
     memcpy(chars, a->chars, a->length);
     memcpy(chars + a->length, b->chars, b->length);
     chars[length] = '\0';
-    Obj_string* result = take_string(chars, length);
-    push(obj_value((Obj*)result));
+    String* result = take_string(chars, length);
+    push(object_value((Object*)result));
 }
 
 static Interpret_result add()

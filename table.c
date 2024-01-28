@@ -10,7 +10,7 @@
 
 static const double table_max_load = 0.75;
 
-static Entry* find_entry(Entry* entries, int capacity, Obj_string* key)
+static Entry* find_entry(Entry* entries, int capacity, String* key)
 {
     uint32_t index = key->hash % capacity;
     Entry* tombstone = NULL;
@@ -84,7 +84,7 @@ void free_table(Table* table)
     init_table(table);
 }
 
-bool table_get(Table* table, Obj_string* key, Value* value)
+bool table_get(Table* table, String* key, Value* value)
 {
     bool found = false;
     if (table->count != 0)
@@ -99,7 +99,7 @@ bool table_get(Table* table, Obj_string* key, Value* value)
     return found;
 }
 
-bool table_set(Table* table, Obj_string* key, Value value)
+bool table_set(Table* table, String* key, Value value)
 {
     if (table->count + 1 > table->capacity * table_max_load)
     {
@@ -117,7 +117,7 @@ bool table_set(Table* table, Obj_string* key, Value value)
     return is_new;
 }
 
-bool table_delete(Table* table, Obj_string* key)
+bool table_delete(Table* table, String* key)
 {
     bool deleted = false;
     if (table->count != 0)
@@ -146,9 +146,9 @@ void table_add_all(Table* from, Table* to)
     }
 }
 
-Obj_string* table_find_string(Table* table, const char* chars, int length, uint32_t hash)
+String* table_find_string(Table* table, const char* chars, int length, uint32_t hash)
 {
-    Obj_string* string = NULL;
+    String* string = NULL;
     if (table->count != 0)
     {
         uint32_t index = hash % table->capacity;
