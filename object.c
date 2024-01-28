@@ -19,7 +19,7 @@ static Object* allocate_object(size_t size, Object_type type)
 
 static String* allocate_string(char* chars, int length, uint32_t hash)
 {
-    String* string = (String*)allocate_object(sizeof(String*), obj_string);
+    String* string = (String*)allocate_object(sizeof(String), obj_string);
     string->length = length;
     string->chars = chars;
     string->hash = hash;
