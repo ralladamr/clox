@@ -187,6 +187,18 @@ static Interpret_result run()
         case op_pop:
             pop();
             break;
+        case op_get_local:
+            {
+                uint8_t slot = read_byte();
+                push(vm.stack[slot]);
+                break;
+            }
+        case op_set_local:
+            {
+                uint8_t slot = read_byte();
+                vm.stack[slot] = peek(0);
+                break;
+            }
         case op_get_global:
             {
                 String* name = read_string();

@@ -26,6 +26,13 @@ static int unknown_instruction(uint8_t instruction, int offset)
     return offset + 1;
 }
 
+static int byte_instruction(const char* name, Chunk* chunk, int offset)
+{
+    uint8_t slot = chunk->code[offset + 1];
+    printf("%-16s %4d\n", name, slot);
+    return offset + 2;
+}
+
 void disassemble_chunk(Chunk* chunk, const char* name)
 {
     printf("== %s ==\n", name);
@@ -67,6 +74,12 @@ int disassemble_instruction(Chunk* chunk, int offset)
         break;
     case op_pop:
         next = simple_instruction("OP_POP", offset);
+        break;
+    case op_get_local:
+        next = byte_instruction("OP_GET_LOCAL", chunk, offset);
+        break;
+    case op_set_local:
+        next = byte_instruction("OP_SET_LOCAL", chunk, offset);
         break;
     case op_get_global:
         next = constant_instruction("OP_GET_GLOBAL", chunk, offset);
