@@ -272,8 +272,8 @@ static void add_local(Token name)
 {
     if (current->local_count < UINT8_COUNT)
     {
-        current->local_count++;
         Local* local = &current->locals[current->local_count];
+        current->local_count++;
         local->name = name;
         local->depth = -1;
     }
