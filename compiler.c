@@ -66,7 +66,7 @@ Compiler* current = NULL;
 Chunk* compiling_chunk;
 
 static void block();
-static void if_statement();
+static void statement();
 
 static Chunk* current_chunk()
 {
@@ -406,6 +406,24 @@ static void end_scope()
     }
 }
 
+static void if_statement()
+{
+    consume(token_left_paren, "Expect '(' after 'if'.");
+    expression();
+    consume(token_right_paren, "Expect ')' after condition.");
+    int then_jump = emit_jump(op_jump_if_false);
+    emit_byte(op_pop);
+    statement();
+    int else_jump = emit_jump(op_jump);
+    patch_jump(then_jump);
+    emit_byte(op_pop);
+    if (match(token_else))
+    {
+        statement();
+    }
+    patch_jump(else_jump);
+}
+
 static void statement()
 {
     if (match(token_print))
@@ -426,24 +444,6 @@ static void statement()
     {
         expression_statement();
     }
-}
-
-static void if_statement()
-{
-    consume(token_left_paren, "Expect '(' after 'if'.");
-    expression();
-    consume(token_right_paren, "Expect ')' after condition.");
-    int then_jump = emit_jump(op_jump_if_false);
-    emit_byte(op_pop);
-    statement();
-    int else_jump = emit_jump(op_jump);
-    patch_jump(then_jump);
-    emit_byte(op_pop);
-    if (match(token_else))
-    {
-        statement();
-    }
-    patch_jump(else_jump);
 }
 
 static void declaration()
