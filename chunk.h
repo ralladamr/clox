@@ -27,6 +27,8 @@ typedef enum
     op_divide,
     op_not,
     op_print,
+    op_jump_if_false,
+    op_jump,
     op_return,
 } Op_code;
 

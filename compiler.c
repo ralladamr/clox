@@ -66,6 +66,7 @@ Compiler* current = NULL;
 Chunk* compiling_chunk;
 
 static void block();
+static void if_statement();
 
 static Chunk* current_chunk()
 {
@@ -187,6 +188,25 @@ static void emit_constant(Value value)
 static void emit_return()
 {
     emit_byte(op_return);
+}
+
+static int emit_jump(uint8_t instruction)
+{
+    emit_byte(instruction);
+    emit_byte(0xff);
+    emit_byte(0xff);
+    return current_chunk()->count - 2;
+}
+
+static void patch_jump(int offset)
+{
+    int jump = current_chunk()->count - offset - 2;
+    if (jump > UINT16_MAX)
+    {
+        error("Too much code to jump over.");
+    }
+    current_chunk()->code[offset] = (jump >> 8) & 0xff;
+    current_chunk()->code[offset + 1] = jump & 0xff;
 }
 
 static void end_compiler()
@@ -392,6 +412,10 @@ static void statement()
     {
         print_statement();
     }
+    else if (match(token_if))
+    {
+        if_statement();
+    }
     else if (match(token_left_brace))
     {
         begin_scope();
@@ -402,6 +426,24 @@ static void statement()
     {
         expression_statement();
     }
+}
+
+static void if_statement()
+{
+    consume(token_left_paren, "Expect '(' after 'if'.");
+    expression();
+    consume(token_right_paren, "Expect ')' after condition.");
+    int then_jump = emit_jump(op_jump_if_false);
+    emit_byte(op_pop);
+    statement();
+    int else_jump = emit_jump(op_jump);
+    patch_jump(then_jump);
+    emit_byte(op_pop);
+    if (match(token_else))
+    {
+        statement();
+    }
+    patch_jump(else_jump);
 }
 
 static void declaration()

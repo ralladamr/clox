@@ -29,6 +29,12 @@ static inline Value read_constant()
     return vm.chunk->constants.values[byte];
 }
 
+static inline uint16_t read_short()
+{
+    vm.ip += 2;
+    return (uint16_t)((vm.ip[-2] << 8) | vm.ip[-1]);
+}
+
 static inline String* read_string()
 {
     return as_string(read_constant());
@@ -257,6 +263,21 @@ static Interpret_result run()
             print_value(pop());
             printf("\n");
             break;
+        case op_jump:
+            {
+                uint16_t offset = read_short();
+                vm.ip += offset;
+                break;
+            }
+        case op_jump_if_false:
+            {
+                uint16_t offset = read_short();
+                if (is_falsey(peek(0)))
+                {
+                    vm.ip += offset;
+                }
+                break;
+            }
         case op_return:
             result = interpret_ok;
             break;
