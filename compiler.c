@@ -633,6 +633,26 @@ static void variable(bool can_assign)
     named_variable(parser.previous, can_assign);
 }
 
+static void and_(bool can_assign)
+{
+    (void)can_assign;
+    int end_jump = emit_jump(op_jump_if_false);
+    emit_byte(op_pop);
+    parse(prec_and);
+    patch_jump(end_jump);
+}
+
+static void or_(bool can_assign)
+{
+    (void)can_assign;
+    int else_jump = emit_jump(op_jump_if_false);
+    int end_jump = emit_jump(op_jump);
+    patch_jump(else_jump);
+    emit_byte(op_pop);
+    parse(prec_or);
+    patch_jump(end_jump);
+}
+
 Rule rules[] =
 {
     [token_left_paren] = { grouping, NULL, prec_none },
@@ -657,7 +677,7 @@ Rule rules[] =
     [token_identifier] = { variable, NULL, prec_none },
     [token_string] = { string, NULL, prec_none },
     [token_number] = { number, NULL, prec_none },
-    [token_and] = { NULL, NULL, prec_none },
+    [token_and] = { NULL, and_, prec_and },
     [token_class] = { NULL, NULL, prec_none },
     [token_else] = { NULL, NULL, prec_none },
     [token_false] = { literal, NULL, prec_none },
@@ -665,7 +685,7 @@ Rule rules[] =
     [token_fun] = { NULL, NULL, prec_none },
     [token_if] = { NULL, NULL, prec_none },
     [token_nil] = { literal, NULL, prec_none },
-    [token_or] = { NULL, NULL, prec_none },
+    [token_or] = { NULL, or_, prec_or },
     [token_print] = { NULL, NULL, prec_none },
     [token_return] = { NULL, NULL, prec_none },
     [token_super] = { NULL, NULL, prec_none },
