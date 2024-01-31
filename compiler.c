@@ -418,6 +418,55 @@ static void end_scope()
     }
 }
 
+static void for_statement()
+{
+    begin_scope();
+    consume(token_left_paren, "Expect '(' after 'for'.");
+    if (match(token_semicolon))
+    {
+        // No initializer.
+    }
+    else if (match(token_var))
+    {
+        var_declaration();
+    }
+    else
+    {
+        expression_statement();
+    }
+    
+    int loop_start = current_chunk()->count;
+    int exit_jump = -1;
+    if (!match(token_semicolon))
+    {
+        expression();
+        consume(token_semicolon, "Expect ';' after loop condition.");
+        exit_jump = emit_jump(op_jump_if_false);
+        emit_byte(op_pop);
+    }
+
+    if (!match(token_right_paren))
+    {
+        int body_jump = emit_jump(op_jump);
+        int increment_start = current_chunk()->count;
+        expression();
+        emit_byte(op_pop);
+        consume(token_right_paren, "Expect ')' after for clauses.");
+        emit_loop(loop_start);
+        loop_start = increment_start;
+        patch_jump(body_jump);
+    }
+    
+    statement();
+    emit_loop(loop_start);
+    if (exit_jump != -1)
+    {
+        patch_jump(exit_jump);
+        emit_byte(op_pop);
+    }
+    end_scope();
+}
+
 static void if_statement()
 {
     consume(token_left_paren, "Expect '(' after 'if'.");
@@ -455,6 +504,10 @@ static void statement()
     if (match(token_print))
     {
         print_statement();
+    }
+    else if (match(token_for))
+    {
+        for_statement();
     }
     else if (match(token_if))
     {
