@@ -134,6 +134,9 @@ int disassemble_instruction(Chunk* chunk, int offset)
     case op_jump_if_false:
         next = jump_instruction("OP_JUMP_IF_FALSE", 1, chunk, offset);
         break;
+    case op_loop:
+        next = jump_instruction("OP_LOOP", -1,  chunk, offset);
+        break;
     case op_return:
         next = simple_instruction("OP_RETURN", offset);
         break;

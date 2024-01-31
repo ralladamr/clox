@@ -278,6 +278,12 @@ static Interpret_result run()
                 }
                 break;
             }
+        case op_loop:
+            {
+                uint16_t offset = read_short();
+                vm.ip -= offset;
+                break;
+            }
         case op_return:
             result = interpret_ok;
             break;
