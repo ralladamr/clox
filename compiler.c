@@ -37,12 +37,10 @@ typedef enum
     prec_primary
 } Precedence;
 
-typedef void (*Function)(bool can_assign);
-
 typedef struct
 {
-    Function prefix;
-    Function infix;
+    void (*prefix)(bool);
+    void (*infix)(bool);
     Precedence precedence;
 } Rule;
 
@@ -236,7 +234,7 @@ static void parse(Precedence precedence)
 {
     advance();
     Rule* current = get_rule(parser.previous.type);
-    Function prefix = current->prefix;
+    void (*prefix)(bool) = current->prefix;
     if (prefix != NULL)
     {
         bool can_assign = precedence <= prec_assignment;
@@ -246,7 +244,7 @@ static void parse(Precedence precedence)
         {
             advance();
             current = get_rule(parser.previous.type);
-            Function infix = current->infix;
+            void (*infix)(bool) = current->infix;
             infix(can_assign);
             next = get_rule(parser.current.type);
         }
