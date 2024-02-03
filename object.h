@@ -88,7 +88,7 @@ static inline Value (*as_native(Value value))(int, Value*)
 }
 
 Function* new_function();
-Native* new_native();
+Native* new_native(Value (*function)(int, Value*));
 String* take_string(char* chars, int length);
 String* copy_string(const char* chars, int length);
 void print_object(Value value);
