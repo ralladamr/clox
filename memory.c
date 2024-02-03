@@ -28,21 +28,30 @@ static void* reallocate(void* pointer, size_t old, size_t new)
     return result;
 }
 
-static void free_string(String* pointer)
-{
-    reallocate(pointer, sizeof(String), 0);
-}
-
 static void free_object(Object* object)
 {
     switch (object->type)
     {
+    case obj_function:
+    {
+        Function* function = (Function*)object;
+        free_chunk(&function->chunk);
+        reallocate(function, sizeof(Function), 0);
+        break;
+    }
+    case obj_native:
+    {
+        Native* native = (Native*)object;
+        reallocate(native, sizeof(Native), 0);
+        break;
+    }
     case obj_string:
-        {
-            String* string = (String*)object;
-            free_array_char(string->chars, string->length + 1);
-            free_string(string);
-        }
+    {
+        String* string = (String*)object;
+        free_array_char(string->chars, string->length + 1);
+        reallocate(string, sizeof(String), 0);
+        break;
+    }
     default:
         break;
     }

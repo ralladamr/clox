@@ -4,10 +4,13 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "chunk.h"
 #include "value.h"
 
 typedef enum
 {
+    obj_function,
+    obj_native,
     obj_string
 } Object_type;
 
@@ -50,6 +53,42 @@ static inline char* as_cstring(Value value)
     return as_string(value)->chars;
 }
 
+typedef struct
+{
+    Object object;
+    int arity;
+    Chunk chunk;
+    String* name;
+} Function;
+
+static inline bool is_function(Value value)
+{
+    return is_object_type(value, obj_function);
+}
+
+static inline Function* as_function(Value value)
+{
+    return (Function*)as_object(value);
+}
+
+typedef struct
+{
+    Object object;
+    Value (*function)(int, Value*);
+} Native;
+
+static inline bool is_native(Value value)
+{
+    return is_object_type(value, obj_native);
+}
+
+static inline Value (*as_native(Value value))(int, Value*)
+{
+    return ((Native*)as_object(value))->function;
+}
+
+Function* new_function();
+Native* new_native();
 String* take_string(char* chars, int length);
 String* copy_string(const char* chars, int length);
 void print_object(Value value);

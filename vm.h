@@ -4,18 +4,27 @@
 #include <stdint.h>
 
 #include "chunk.h"
+#include "object.h"
 #include "table.h"
 #include "value.h"
 
-enum Stack_parameter
+enum VM_parameter
 {
-    stack_max = 256
+    frames_max = 64,
+    stack_max = frames_max * (UINT8_MAX + 1)
 };
 
 typedef struct
 {
-    Chunk* chunk;
+    Function* function;
     uint8_t* ip;
+    Value* slots;
+} Call_frame;
+
+typedef struct
+{
+    Call_frame frames[frames_max];
+    int frame_count;
     Value stack[stack_max];
     Value* stack_top;
     Table globals;

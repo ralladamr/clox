@@ -27,6 +27,23 @@ static String* allocate_string(char* chars, int length, uint32_t hash)
     return string;
 }
 
+Function* new_function()
+{
+    Function* function = (Function*)allocate_object(sizeof(Function),
+                                                    obj_function);
+    function->arity = 0;
+    function->name = NULL;
+    init_chunk(&function->chunk);
+    return function;
+}
+
+Native* new_native(Value (*function)(int, Value*))
+{
+    Native* native = (Native*)allocate_object(sizeof(Native), obj_native);
+    native->function = function;
+    return native;
+}
+
 static uint32_t hash_string(const char* key, int length)
 {
     uint32_t hash = 2166136261u;
@@ -74,10 +91,28 @@ String* copy_string(const char* chars, int length)
     return string;
 }
 
+static void print_function(Function* function)
+{
+    if (function->name == NULL)
+    {
+        printf("<script>");
+    }
+    else
+    {
+        printf("<fn %s>", function->name->chars);
+    }
+}
+
 void print_object(Value value)
 {
     switch (object_type(value))
     {
+    case obj_function:
+        print_function(as_function(value));
+        break;
+    case obj_native:
+        printf("<native fn>");
+        break;
     case obj_string:
         printf("%s", as_cstring(value));
         break;

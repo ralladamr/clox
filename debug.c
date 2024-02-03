@@ -137,6 +137,9 @@ int disassemble_instruction(Chunk* chunk, int offset)
     case op_loop:
         next = jump_instruction("OP_LOOP", -1,  chunk, offset);
         break;
+    case op_call:
+        return byte_instruction("OP_CALL", chunk, offset);
+        break;
     case op_return:
         next = simple_instruction("OP_RETURN", offset);
         break;
