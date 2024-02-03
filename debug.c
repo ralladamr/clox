@@ -55,7 +55,7 @@ static int closure_instruction(const char* name, Chunk* chunk, int offset)
         int is_local = chunk->code[offset++];
         int index = chunk->code[offset++];
         printf("%04d      |                   %s %d\n", offset - 2,
-               is_local ? "local" : "upvalue", index);
+            is_local ? "local" : "upvalue", index);
     }
     return offset;
 }
@@ -163,7 +163,7 @@ int disassemble_instruction(Chunk* chunk, int offset)
         next = jump_instruction("OP_JUMP_IF_FALSE", 1, chunk, offset);
         break;
     case op_loop:
-        next = jump_instruction("OP_LOOP", -1,  chunk, offset);
+        next = jump_instruction("OP_LOOP", -1, chunk, offset);
         break;
     case op_call:
         next = byte_instruction("OP_CALL", chunk, offset);

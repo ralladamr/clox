@@ -61,7 +61,7 @@ static void runtime_error(const char* format, ...)
     va_end(args);
     fputs("\n", stderr);
 
-    for (int i = vm.frame_count - 1; i >=0; i--)
+    for (int i = vm.frame_count - 1; i >= 0; i--)
     {
         Call_frame* frame = &vm.frames[i];
         Function* function = frame->closure->function;
@@ -78,7 +78,7 @@ static void runtime_error(const char* format, ...)
     }
 }
 
-static void define_native(const char* name, Value (*function)(int, Value*))
+static void define_native(const char* name, Value(*function)(int, Value*))
 {
     push(object_value((Object*)copy_string(name, (int)strlen(name))));
     push(object_value((Object*)new_native(function)));
@@ -122,7 +122,7 @@ static bool call_value(Value callee, int arg_count)
             break;
         case obj_native:
         {
-            Value (*native)(int, Value*) = as_native(callee);
+            Value(*native)(int, Value*) = as_native(callee);
             Value val = native(arg_count, vm.stack_top - arg_count);
             vm.stack_top -= arg_count + 1;
             push(val);

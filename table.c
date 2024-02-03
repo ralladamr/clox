@@ -163,8 +163,7 @@ String* table_find_string(Table* table, const char* chars, int length, uint32_t 
                     stop = true;
                 }
             }
-            else if (entry->key->length == length &&
-                     entry->key->hash == hash &&
+            else if (entry->key->length == length && entry->key->hash == hash &&
                      memcmp(entry->key->chars, chars, length) == 0)
             {
                 string = entry->key;

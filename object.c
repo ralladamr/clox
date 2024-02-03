@@ -52,8 +52,7 @@ Closure* new_closure(Function* function)
 
 Function* new_function()
 {
-    Function* function = (Function*)allocate_object(sizeof(Function),
-                                                    obj_function);
+    Function* function = (Function*)allocate_object(sizeof(Function), obj_function);
     function->arity = 0;
     function->upvalue_count = 0;
     function->name = NULL;
@@ -61,7 +60,7 @@ Function* new_function()
     return function;
 }
 
-Native* new_native(Value (*function)(int, Value*))
+Native* new_native(Value(*function)(int, Value*))
 {
     Native* native = (Native*)allocate_object(sizeof(Native), obj_native);
     native->function = function;

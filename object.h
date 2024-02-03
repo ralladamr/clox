@@ -77,7 +77,7 @@ static inline Function* as_function(Value value)
 typedef struct
 {
     Object object;
-    Value (*function)(int, Value*);
+    Value(*function)(int, Value*);
 } Native;
 
 static inline bool is_native(Value value)
@@ -85,7 +85,7 @@ static inline bool is_native(Value value)
     return is_object_type(value, obj_native);
 }
 
-static inline Value (*as_native(Value value))(int, Value*)
+static inline Value(*as_native(Value value))(int, Value*)
 {
     return ((Native*)as_object(value))->function;
 }
@@ -120,7 +120,7 @@ static inline Closure* as_closure(Value value)
 Upvalue* new_upvalue(Value* slot);
 Closure* new_closure(Function* function);
 Function* new_function();
-Native* new_native(Value (*function)(int, Value*));
+Native* new_native(Value(*function)(int, Value*));
 String* take_string(char* chars, int length);
 String* copy_string(const char* chars, int length);
 void print_object(Value value);
