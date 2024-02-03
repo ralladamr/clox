@@ -61,7 +61,7 @@ typedef struct Compiler
     struct Compiler* enclosing;
     Function* function;
     Function_type type;
-    Local locals[UINT8_COUNT];
+    Local locals[variables_max];
     int local_count;
     int scope_depth;
 } Compiler;
@@ -308,7 +308,7 @@ static uint8_t identifier_constant(Token* name)
 
 static void add_local(Token name)
 {
-    if (current->local_count < UINT8_COUNT)
+    if (current->local_count < variables_max)
     {
         Local* local = &current->locals[current->local_count];
         current->local_count++;

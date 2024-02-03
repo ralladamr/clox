@@ -7,7 +7,10 @@
 #include "chunk.h"
 #include "object.h"
 
-#define UINT8_COUNT (UINT8_MAX + 1)
+enum Compiler_param
+{
+    variables_max = UINT8_MAX + 1
+};
 
 Function* compile(const char* source);
 
