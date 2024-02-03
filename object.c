@@ -27,11 +27,35 @@ static String* allocate_string(char* chars, int length, uint32_t hash)
     return string;
 }
 
+Upvalue* new_upvalue(Value* slot)
+{
+    Upvalue* upvalue = (Upvalue*)allocate_object(sizeof(Upvalue), obj_upvalue);
+    upvalue->location = slot;
+    upvalue->closed = nil_value();
+    upvalue->next = NULL;
+    return upvalue;
+}
+
+Closure* new_closure(Function* function)
+{
+    Closure* closure = (Closure*)allocate_object(sizeof(Closure), obj_closure);
+    closure->function = function;
+    Upvalue** upvalues = allocate_upvalues(function->upvalue_count);
+    for (int i = 0; i < function->upvalue_count; i++)
+    {
+        upvalues[i] = NULL;
+    }
+    closure->upvalues = upvalues;
+    closure->upvalue_count = function->upvalue_count;
+    return closure;
+}
+
 Function* new_function()
 {
     Function* function = (Function*)allocate_object(sizeof(Function),
                                                     obj_function);
     function->arity = 0;
+    function->upvalue_count = 0;
     function->name = NULL;
     init_chunk(&function->chunk);
     return function;
@@ -107,6 +131,14 @@ void print_object(Value value)
 {
     switch (object_type(value))
     {
+    case obj_upvalue:
+    {
+        printf("upvalue");
+        break;
+    }
+    case obj_closure:
+        print_function(as_closure(value)->function);
+        break;
     case obj_function:
         print_function(as_function(value));
         break;

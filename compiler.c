@@ -48,7 +48,14 @@ typedef struct
 {
     Token name;
     int depth;
+    bool is_captured;
 } Local;
+
+typedef struct
+{
+    uint8_t index;
+    bool is_local;
+} Upvalue_node;
 
 typedef enum
 {
@@ -63,6 +70,7 @@ typedef struct Compiler
     Function_type type;
     Local locals[variables_max];
     int local_count;
+    Upvalue_node upvalues[variables_max];
     int scope_depth;
 } Compiler;
 
@@ -128,6 +136,7 @@ static void init_compiler(Compiler* compiler, Function_type type)
 
     Local* local = &current->locals[current->local_count++];
     local->depth = 0;
+    local->is_captured = false;
     local->name.start = "";
     local->name.length = 0;
 }
@@ -314,6 +323,7 @@ static void add_local(Token name)
         current->local_count++;
         local->name = name;
         local->depth = -1;
+        local->is_captured = false;
     }
     else
     {
@@ -454,7 +464,14 @@ static void end_scope()
     while (current->local_count > 0 &&
            current->locals[current->local_count - 1].depth > current->scope_depth)
     {
-        emit_byte(op_pop);
+        if (current->locals[current->local_count - 1].is_captured)
+        {
+            emit_byte(op_close_upvalue);
+        }
+        else
+        {
+            emit_byte(op_pop);
+        }
         current->local_count--;
     }
 }
@@ -483,7 +500,12 @@ static void function(Function_type type)
     consume(token_left_brace, "Expect '{' before function body.");
     block();
     Function* function = end_compiler();
-    emit_bytes(op_constant, make_constant(object_value((Object*)function)));
+    emit_bytes(op_closure, make_constant(object_value((Object*)function)));
+    for (int i = 0; i < function->upvalue_count; i++)
+    {
+        emit_byte(compiler.upvalues[i].is_local ? 1 : 0);
+        emit_byte(compiler.upvalues[i].index);
+    }
 }
 
 static void fun_declaration()
@@ -813,6 +835,58 @@ static int resolve_local(Compiler* compiler, Token* name)
     return found ? i : -1;
 }
 
+static int add_upvalue(Compiler* compiler, uint8_t index, bool is_local)
+{
+    int count = compiler->function->upvalue_count;
+    int result = -1;
+    for (int i = 0; i < count; i++)
+    {
+        Upvalue_node* upvalue = &compiler->upvalues[i];
+        if (upvalue->index == index && upvalue->is_local == is_local)
+        {
+            result = i;
+        }
+    }
+    if (result == -1)
+    {
+        if (count == variables_max)
+        {
+            error("Too many closure variables in function.");
+            result = 0;
+        }
+        else
+        {
+            compiler->upvalues[count].is_local = is_local;
+            compiler->upvalues[count].index = index;
+            result = compiler->function->upvalue_count++;
+        }
+    }
+    return result;
+}
+
+static int resolve_upvalue(Compiler* compiler, Token* name)
+{
+    int result = -1;
+    if (compiler->enclosing != NULL)
+    {
+        int local = resolve_local(compiler->enclosing, name);
+        if (local != -1)
+        {
+            compiler->enclosing->locals[local].is_captured = true;
+            result = add_upvalue(compiler, (uint8_t)local, true);
+        }
+        else
+        {
+            int upvalue = resolve_upvalue(compiler->enclosing, name);
+            if (upvalue != -1)
+            {
+                result = add_upvalue(compiler, (uint8_t)upvalue, false);
+            }
+        }
+    }
+    return result;
+}
+
 static void named_variable(Token name, bool can_assign)
 {
     uint8_t get_op;
@@ -825,9 +899,18 @@ static void named_variable(Token name, bool can_assign)
     }
     else
     {
-        arg = identifier_constant(&name);
-        get_op = op_get_global;
-        set_op = op_set_global;
+        arg = resolve_upvalue(current, &name);
+        if (arg != -1)
+        {
+            get_op = op_get_upvalue;
+            set_op = op_set_upvalue;
+        }
+        else
+        {
+            arg = identifier_constant(&name);
+            get_op = op_get_global;
+            set_op = op_set_global;
+        }
     }
 
     if (can_assign && match(token_equal))

@@ -32,6 +32,19 @@ static void free_object(Object* object)
 {
     switch (object->type)
     {
+    case obj_upvalue:
+    {
+        Upvalue* upvalue = (Upvalue*)object;
+        reallocate(upvalue, sizeof(Upvalue), 0);
+        break;
+    }
+    case obj_closure:
+    {
+        Closure* closure = (Closure*)object;
+        free_array_upvalues(closure->upvalues, closure->upvalue_count);
+        reallocate(closure, sizeof(Closure), 0);
+        break;
+    }
     case obj_function:
     {
         Function* function = (Function*)object;
@@ -67,6 +80,11 @@ Entry* allocate_entry(int count)
     return (Entry*)reallocate(NULL, 0, sizeof(Entry) * count);
 }
 
+Upvalue** allocate_upvalues(int count)
+{
+    return (Upvalue**)reallocate(NULL, 0, sizeof(Upvalue*) * count);
+}
+
 void* allocate_void(size_t size)
 {
     return reallocate(NULL, 0, size);
@@ -93,6 +111,11 @@ void free_array_int(int* pointer, int count)
 void free_array_uint8_t(uint8_t* pointer, int count)
 {
     size_t size = sizeof(uint8_t) * count;
+    reallocate(pointer, size, 0);
+}
+void free_array_upvalues(Upvalue** pointer, int count)
+{
+    size_t size = sizeof(Upvalue*) * count;
     reallocate(pointer, size, 0);
 }
 

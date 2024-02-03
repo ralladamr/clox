@@ -3,6 +3,7 @@
 
 #include "chunk.h"
 #include "debug.h"
+#include "object.h"
 #include "value.h"
 
 static int constant_instruction(const char* name, Chunk* chunk, int offset)
@@ -39,6 +40,24 @@ static int jump_instruction(const char* name, int sign, Chunk* chunk, int offset
     jump |= chunk->code[offset + 2];
     printf("%-16s %4d -> %d\n", name, offset, offset + 3 + sign * jump);
     return offset + 3;
+}
+
+static int closure_instruction(const char* name, Chunk* chunk, int offset)
+{
+    offset++;
+    uint8_t constant = chunk->code[offset++];
+    printf("%-16s %4d ", name, constant);
+    print_value(chunk->constants.values[constant]);
+    printf("\n");
+    Function* function = as_function(chunk->constants.values[constant]);
+    for (int i = 0; i < function->upvalue_count; i++)
+    {
+        int is_local = chunk->code[offset++];
+        int index = chunk->code[offset++];
+        printf("%04d      |                   %s %d\n", offset - 2,
+               is_local ? "local" : "upvalue", index);
+    }
+    return offset;
 }
 
 void disassemble_chunk(Chunk* chunk, const char* name)
@@ -89,6 +108,15 @@ int disassemble_instruction(Chunk* chunk, int offset)
     case op_set_local:
         next = byte_instruction("OP_SET_LOCAL", chunk, offset);
         break;
+    case op_get_upvalue:
+        next = byte_instruction("OP_GET_UPVALUE", chunk, offset);
+        break;
+    case op_set_upvalue:
+        next = byte_instruction("OP_SET_UPVALUE", chunk, offset);
+        break;
+    case op_close_upvalue:
+        next = simple_instruction("OP_CLOSE_UPVALUE", offset);
+        break;
     case op_get_global:
         next = constant_instruction("OP_GET_GLOBAL", chunk, offset);
         break;
@@ -138,7 +166,10 @@ int disassemble_instruction(Chunk* chunk, int offset)
         next = jump_instruction("OP_LOOP", -1,  chunk, offset);
         break;
     case op_call:
-        return byte_instruction("OP_CALL", chunk, offset);
+        next = byte_instruction("OP_CALL", chunk, offset);
+        break;
+    case op_closure:
+        next = closure_instruction("OP_CLOSURE", chunk, offset);
         break;
     case op_return:
         next = simple_instruction("OP_RETURN", offset);

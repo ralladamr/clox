@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "object.h"
 #include "table.h"
 #include "value.h"
 
@@ -14,12 +15,14 @@ static inline int grow_capacity(int capacity)
 
 char* allocate_char(int count);
 Entry* allocate_entry(int count);
+Upvalue** allocate_upvalues(int count);
 void* allocate_void(size_t size);
 
 void free_array_char(char* pointer, int count);
 void free_array_entry(Entry* pointer, int count);
 void free_array_int(int* pointer, int count);
 void free_array_uint8_t(uint8_t* pointer, int count);
+void free_array_upvalues(Upvalue** pointer, int count);
 void free_array_value(Value* pointer, int count);
 void free_objects();
 

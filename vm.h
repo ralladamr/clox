@@ -16,7 +16,7 @@ enum VM_parameter
 
 typedef struct
 {
-    Function* function;
+    Closure* closure;
     uint8_t* ip;
     Value* slots;
 } Call_frame;
@@ -29,6 +29,7 @@ typedef struct
     Value* stack_top;
     Table globals;
     Table strings;
+    Upvalue* open_upvalues;
     Object* objects;
 } VM;
 
