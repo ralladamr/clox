@@ -38,10 +38,7 @@ static Entry* find_entry(Entry* entries, int capacity, String* key)
         {
             found = true;
         }
-        else
-        {
-            index = (index + 1) % capacity;
-        }
+        index = (index + 1) % capacity;
     }
     return entry;
 }
@@ -169,10 +166,7 @@ String* table_find_string(Table* table, const char* chars, int length, uint32_t 
                 string = entry->key;
                 stop = true;
             }
-            else
-            {
-                index = (index + 1) % table->capacity;
-            }
+            index = (index + 1) % table->capacity;
         }
     }
     return string;
