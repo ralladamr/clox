@@ -293,6 +293,7 @@ static void blacken_object(Object* object)
         {
             mark_object((Object*)closure->upvalues[i]);
         }
+        break;
     }
     case obj_native:
     case obj_string:
