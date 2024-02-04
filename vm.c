@@ -201,8 +201,11 @@ static Interpret_result unary_op(Op_code op)
             runtime_error("Operand must be a number.");
             result = interpret_runtime_error;
         }
-        double val = -as_number(pop());
-        push(number_value(val));
+        else
+        {
+            double val = -as_number(pop());
+            push(number_value(val));
+        }
         break;
     default:
         break;
@@ -241,6 +244,7 @@ static Interpret_result binary_op_number(Op_code op)
             break;
         case op_less:
             push(bool_value(a < b));
+            break;
         default:
             break;
         }
@@ -355,7 +359,10 @@ static Interpret_result run()
                 runtime_error("Undefined variable '%s'.", name->chars);
                 result = interpret_runtime_error;
             }
-            push(value);
+            else
+            {
+                push(value);
+            }
             break;
         }
         case op_define_global:
@@ -432,7 +439,10 @@ static Interpret_result run()
             {
                 result = interpret_runtime_error;
             }
-            frame = &vm.frames[vm.frame_count - 1];
+            else
+            {
+                frame = &vm.frames[vm.frame_count - 1];
+            }
             break;
         }
         case op_closure:
@@ -465,9 +475,12 @@ static Interpret_result run()
                 pop();
                 result = interpret_ok;
             }
-            vm.stack_top = frame->slots;
-            push(val);
-            frame = &vm.frames[vm.frame_count - 1];
+            else
+            {
+                vm.stack_top = frame->slots;
+                push(val);
+                frame = &vm.frames[vm.frame_count - 1];
+            }
             break;
         }
         default:
