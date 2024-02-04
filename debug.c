@@ -54,8 +54,8 @@ static int closure_instruction(const char* name, Chunk* chunk, int offset)
     {
         int is_local = chunk->code[offset++];
         int index = chunk->code[offset++];
-        printf("%04d      |                   %s %d\n", offset - 2,
-            is_local ? "local" : "upvalue", index);
+        printf("%04d      |                   %s %d\n", offset - 2, is_local ? "local" : "upvalue",
+            index);
     }
     return offset;
 }

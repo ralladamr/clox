@@ -81,7 +81,7 @@ Instance* new_instance(Class* class)
     return instance;
 }
 
-Native* new_native(Value(*function)(int, Value*))
+Native* new_native(Value (*function)(int, Value*))
 {
     Native* native = (Native*)allocate_object(sizeof(Native), obj_native);
     native->function = function;

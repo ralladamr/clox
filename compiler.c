@@ -131,8 +131,7 @@ static void init_compiler(Compiler* compiler, Function_type type)
     current = compiler;
     if (type != type_script)
     {
-        current->function->name = copy_string(parser.previous.start,
-            parser.previous.length);
+        current->function->name = copy_string(parser.previous.start, parser.previous.length);
     }
 
     Local* local = &current->locals[current->local_count++];
@@ -462,8 +461,8 @@ static void begin_scope()
 static void end_scope()
 {
     current->scope_depth--;
-    while (current->local_count > 0 &&
-        current->locals[current->local_count - 1].depth > current->scope_depth)
+    while (current->local_count > 0
+        && current->locals[current->local_count - 1].depth > current->scope_depth)
     {
         if (current->locals[current->local_count - 1].is_captured)
         {
