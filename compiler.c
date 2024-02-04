@@ -6,6 +6,7 @@
 
 #include "chunk.h"
 #include "compiler.h"
+#include "memory.h"
 #include "object.h"
 #include "scanner.h"
 #include "value.h"
@@ -131,7 +132,7 @@ static void init_compiler(Compiler* compiler, Function_type type)
     if (type != type_script)
     {
         current->function->name = copy_string(parser.previous.start,
-                                              parser.previous.length);
+            parser.previous.length);
     }
 
     Local* local = &current->locals[current->local_count++];
@@ -262,7 +263,7 @@ static Function* end_compiler()
 {
     emit_return();
     Function* function = current->function;
-    
+
 #ifdef DEBUG_PRINT_CODE
     if (!parser.had_error)
     {
@@ -462,7 +463,7 @@ static void end_scope()
 {
     current->scope_depth--;
     while (current->local_count > 0 &&
-           current->locals[current->local_count - 1].depth > current->scope_depth)
+        current->locals[current->local_count - 1].depth > current->scope_depth)
     {
         if (current->locals[current->local_count - 1].is_captured)
         {
@@ -532,7 +533,7 @@ static void for_statement()
     {
         expression_statement();
     }
-    
+
     int loop_start = current_chunk()->count;
     int exit_jump = -1;
     if (!match(token_semicolon))
@@ -554,7 +555,7 @@ static void for_statement()
         loop_start = increment_start;
         patch_jump(body_jump);
     }
-    
+
     statement();
     emit_loop(loop_start);
     if (exit_jump != -1)
@@ -1012,4 +1013,14 @@ Function* compile(const char* source)
     }
     Function* function = end_compiler();
     return parser.had_error ? NULL : function;
+}
+
+void mark_compiler_roots()
+{
+    Compiler* compiler = current;
+    while (compiler != NULL)
+    {
+        mark_object((Object*)compiler->function);
+        compiler = compiler->enclosing;
+    }
 }

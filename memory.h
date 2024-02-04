@@ -25,6 +25,9 @@ void free_array_uint8_t(uint8_t* pointer, int count);
 void free_array_upvalues(Upvalue** pointer, int count);
 void free_array_value(Value* pointer, int count);
 void free_objects();
+void mark_object(Object* object);
+void mark_value(Value value);
+void collect_garbage();
 
 int* grow_array_int(int* pointer, int old, int new);
 uint8_t* grow_array_uint8_t(uint8_t* pointer, int old, int new);

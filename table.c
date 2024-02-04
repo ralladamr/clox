@@ -164,7 +164,7 @@ String* table_find_string(Table* table, const char* chars, int length, uint32_t 
                 }
             }
             else if (entry->key->length == length && entry->key->hash == hash &&
-                     memcmp(entry->key->chars, chars, length) == 0)
+                memcmp(entry->key->chars, chars, length) == 0)
             {
                 string = entry->key;
                 stop = true;
@@ -176,4 +176,26 @@ String* table_find_string(Table* table, const char* chars, int length, uint32_t 
         }
     }
     return string;
+}
+
+void mark_table(Table* table)
+{
+    for (int i = 0; i < table->capacity; i++)
+    {
+        Entry* entry = &table->entries[i];
+        mark_object((Object*)entry->key);
+        mark_value(entry->value);
+    }
+}
+
+void table_remove_white(Table* table)
+{
+    for (int i = 0; i < table->capacity; i++)
+    {
+        Entry* entry = &table->entries[i];
+        if (entry->key != NULL && !entry->key->object.is_marked)
+        {
+            table_delete(table, entry->key);
+        }
+    }
 }

@@ -27,5 +27,7 @@ bool table_set(Table* table, String* key, Value value);
 bool table_delete(Table* table, String* key);
 void table_add_all(Table* from, Table* to);
 String* table_find_string(Table* table, const char* chars, int length, uint32_t hash);
+void mark_table(Table* table);
+void table_remove_white(Table* table);
 
 #endif

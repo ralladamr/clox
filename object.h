@@ -19,6 +19,7 @@ typedef enum
 typedef struct Object
 {
     Object_type type;
+    bool is_marked;
     Object* next;
 } Object;
 

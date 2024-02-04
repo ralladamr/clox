@@ -93,7 +93,7 @@ static bool call(Closure* closure, int arg_count)
     if (arg_count != closure->function->arity)
     {
         runtime_error("Expected %d arguments but got %d.",
-                      closure->function->arity, arg_count);
+            closure->function->arity, arg_count);
     }
     else if (vm.frame_count == frames_max)
     {
@@ -250,14 +250,16 @@ static Interpret_result binary_op_number(Op_code op)
 
 static void concatenate()
 {
-    String* b = as_string(pop());
-    String* a = as_string(pop());
+    String* b = as_string(peek(0));
+    String* a = as_string(peek(1));
     int length = a->length + b->length;
     char* chars = allocate_char(length + 1);
     memcpy(chars, a->chars, a->length);
     memcpy(chars + a->length, b->chars, b->length);
     chars[length] = '\0';
     String* result = take_string(chars, length);
+    pop();
+    pop();
     push(object_value((Object*)result));
 }
 
@@ -479,8 +481,13 @@ void init_VM()
 {
     reset_stack();
     vm.objects = NULL;
+    vm.bytes_allocated = 0;
+    vm.next_GC = 1024ull * 1024ull;
     init_table(&vm.globals);
     init_table(&vm.strings);
+    vm.gray_count = 0;
+    vm.gray_capacity = 0;
+    vm.gray_stack = NULL;
     define_native("clock", clock_native);
 }
 

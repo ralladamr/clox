@@ -13,5 +13,6 @@ enum Compiler_param
 };
 
 Function* compile(const char* source);
+void mark_compiler_roots();
 
 #endif
