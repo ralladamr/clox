@@ -132,6 +132,9 @@ int disassemble_instruction(Chunk* chunk, int offset)
     case op_set_property:
         next = constant_instruction("OP_SET_PROPERTY", chunk, offset);
         break;
+    case op_method:
+        next = constant_instruction("OP_METHOD", chunk, offset);
+        break;
     case op_equal:
         next = simple_instruction("OP_EQUAL", offset);
         break;

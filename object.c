@@ -37,7 +37,16 @@ Class* new_class(String* name)
 {
     Class* class = (Class*)allocate_object(sizeof(Class), obj_class);
     class->name = name;
+    init_table(&class->methods);
     return class;
+}
+
+Bound_method* new_bound_method(Value receiver, Closure* method)
+{
+    Bound_method* bound = (Bound_method*)allocate_object(sizeof(Bound_method), obj_bound_method);
+    bound->receiver = receiver;
+    bound->method = method;
+    return bound;
 }
 
 Upvalue* new_upvalue(Value* slot)
@@ -153,6 +162,9 @@ void print_object(Value value)
     {
     case obj_class:
         printf("%s", as_class(value)->name->chars);
+        break;
+    case obj_bound_method:
+        print_function(as_bound_method(value)->method->function);
         break;
     case obj_upvalue:
         printf("upvalue");

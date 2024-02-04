@@ -508,15 +508,143 @@ static void function(Function_type type)
     }
 }
 
+static void method()
+{
+    consume(token_identifier, "Expect method name.");
+    uint8_t constant = identifier_constant(&parser.previous);
+    Function_type type = type_function;
+    function(type);
+    emit_bytes(op_method, constant);
+}
+
+static int resolve_local(Compiler* compiler, Token* name)
+{
+    bool found = false;
+    int i = compiler->local_count - 1;
+    while (!found && i >= 0)
+    {
+        Local* local = &compiler->locals[i];
+        if (identifiers_equal(name, &local->name))
+        {
+            if (local->depth == -1)
+            {
+                error("Can't read local variable in its own initializer.");
+            }
+            found = true;
+        }
+        else
+        {
+            i--;
+        }
+    }
+    return found ? i : -1;
+}
+
+static int add_upvalue(Compiler* compiler, uint8_t index, bool is_local)
+{
+    int count = compiler->function->upvalue_count;
+    int result = -1;
+    for (int i = 0; i < count; i++)
+    {
+        Upvalue_node* upvalue = &compiler->upvalues[i];
+        if (upvalue->index == index && upvalue->is_local == is_local)
+        {
+            result = i;
+        }
+    }
+    if (result == -1)
+    {
+        if (count == variables_max)
+        {
+            error("Too many closure variables in function.");
+            result = 0;
+        }
+        else
+        {
+            compiler->upvalues[count].is_local = is_local;
+            compiler->upvalues[count].index = index;
+            result = compiler->function->upvalue_count++;
+        }
+    }
+    return result;
+}
+
+static int resolve_upvalue(Compiler* compiler, Token* name)
+{
+    int result = -1;
+    if (compiler->enclosing != NULL)
+    {
+        int local = resolve_local(compiler->enclosing, name);
+        if (local != -1)
+        {
+            compiler->enclosing->locals[local].is_captured = true;
+            result = add_upvalue(compiler, (uint8_t)local, true);
+        }
+        else
+        {
+            int upvalue = resolve_upvalue(compiler->enclosing, name);
+            if (upvalue != -1)
+            {
+                result = add_upvalue(compiler, (uint8_t)upvalue, false);
+            }
+        }
+    }
+    return result;
+}
+
+static void named_variable(Token name, bool can_assign)
+{
+    uint8_t get_op;
+    uint8_t set_op;
+    int arg = resolve_local(current, &name);
+    if (arg != -1)
+    {
+        get_op = op_get_local;
+        set_op = op_set_local;
+    }
+    else
+    {
+        arg = resolve_upvalue(current, &name);
+        if (arg != -1)
+        {
+            get_op = op_get_upvalue;
+            set_op = op_set_upvalue;
+        }
+        else
+        {
+            arg = identifier_constant(&name);
+            get_op = op_get_global;
+            set_op = op_set_global;
+        }
+    }
+
+    if (can_assign && match(token_equal))
+    {
+        expression();
+        emit_bytes(set_op, (uint8_t)arg);
+    }
+    else
+    {
+        emit_bytes(get_op, (uint8_t)arg);
+    }
+}
+
 static void class_declaration()
 {
     consume(token_identifier, "Expect class name.");
+    Token class_name = parser.previous;
     uint8_t name_constant = identifier_constant(&parser.previous);
     declare_variable();
     emit_bytes(op_class, name_constant);
     define_variable(name_constant);
+    named_variable(class_name, false);
     consume(token_left_brace, "Expect '{' before class body.");
+    while (!check(token_right_brace) && !check(token_eof))
+    {
+        method();
+    }
     consume(token_right_brace, "Expect '}' after class body.");
+    emit_byte(op_pop);
 }
 
 static void fun_declaration()
@@ -840,118 +968,6 @@ static void string(bool can_assign)
     int length = parser.previous.length - 2;
     String* string = copy_string(chars, length);
     emit_constant(object_value((Object*)string));
-}
-
-static int resolve_local(Compiler* compiler, Token* name)
-{
-    bool found = false;
-    int i = compiler->local_count - 1;
-    while (!found && i >= 0)
-    {
-        Local* local = &compiler->locals[i];
-        if (identifiers_equal(name, &local->name))
-        {
-            if (local->depth == -1)
-            {
-                error("Can't read local variable in its own initializer.");
-            }
-            found = true;
-        }
-        else
-        {
-            i--;
-        }
-    }
-    return found ? i : -1;
-}
-
-static int add_upvalue(Compiler* compiler, uint8_t index, bool is_local)
-{
-    int count = compiler->function->upvalue_count;
-    int result = -1;
-    for (int i = 0; i < count; i++)
-    {
-        Upvalue_node* upvalue = &compiler->upvalues[i];
-        if (upvalue->index == index && upvalue->is_local == is_local)
-        {
-            result = i;
-        }
-    }
-    if (result == -1)
-    {
-        if (count == variables_max)
-        {
-            error("Too many closure variables in function.");
-            result = 0;
-        }
-        else
-        {
-            compiler->upvalues[count].is_local = is_local;
-            compiler->upvalues[count].index = index;
-            result = compiler->function->upvalue_count++;
-        }
-    }
-    return result;
-}
-
-static int resolve_upvalue(Compiler* compiler, Token* name)
-{
-    int result = -1;
-    if (compiler->enclosing != NULL)
-    {
-        int local = resolve_local(compiler->enclosing, name);
-        if (local != -1)
-        {
-            compiler->enclosing->locals[local].is_captured = true;
-            result = add_upvalue(compiler, (uint8_t)local, true);
-        }
-        else
-        {
-            int upvalue = resolve_upvalue(compiler->enclosing, name);
-            if (upvalue != -1)
-            {
-                result = add_upvalue(compiler, (uint8_t)upvalue, false);
-            }
-        }
-    }
-    return result;
-}
-
-static void named_variable(Token name, bool can_assign)
-{
-    uint8_t get_op;
-    uint8_t set_op;
-    int arg = resolve_local(current, &name);
-    if (arg != -1)
-    {
-        get_op = op_get_local;
-        set_op = op_set_local;
-    }
-    else
-    {
-        arg = resolve_upvalue(current, &name);
-        if (arg != -1)
-        {
-            get_op = op_get_upvalue;
-            set_op = op_set_upvalue;
-        }
-        else
-        {
-            arg = identifier_constant(&name);
-            get_op = op_get_global;
-            set_op = op_set_global;
-        }
-    }
-
-    if (can_assign && match(token_equal))
-    {
-        expression();
-        emit_bytes(set_op, (uint8_t)arg);
-    }
-    else
-    {
-        emit_bytes(get_op, (uint8_t)arg);
-    }
 }
 
 static void variable(bool can_assign)

@@ -60,7 +60,14 @@ static void free_object(Object* object)
     {
     case obj_class:
     {
+        Class* class = (Class*)object;
+        free_table(&class->methods);
         reallocate(object, sizeof(Class), 0);
+        break;
+    }
+    case obj_bound_method:
+    {
+        reallocate(object, sizeof(Bound_method), 0);
         break;
     }
     case obj_upvalue:
@@ -266,6 +273,14 @@ static void blacken_object(Object* object)
     {
         Class* class = (Class*)object;
         mark_object((Object*)class->name);
+        mark_table(&class->methods);
+        break;
+    }
+    case obj_bound_method:
+    {
+        Bound_method* bound = (Bound_method*)object;
+        mark_value(bound->receiver);
+        mark_object((Object*)bound->method);
         break;
     }
     case obj_upvalue:

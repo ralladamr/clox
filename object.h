@@ -11,6 +11,7 @@
 typedef enum
 {
     obj_class,
+    obj_bound_method,
     obj_function,
     obj_instance,
     obj_native,
@@ -124,6 +125,7 @@ typedef struct
 {
     Object object;
     String* name;
+    Table methods;
 } Class;
 
 static inline bool is_class(Value value)
@@ -153,7 +155,25 @@ static inline Instance* as_instance(Value value)
     return (Instance*)as_object(value);
 }
 
+typedef struct
+{
+    Object object;
+    Value receiver;
+    Closure* method;
+} Bound_method;
+
+static inline bool is_bound_method(Value value)
+{
+    return is_object_type(value, obj_bound_method);
+}
+
+static inline Bound_method* as_bound_method(Value value)
+{
+    return (Bound_method*)as_object(value);
+}
+
 Class* new_class(String* name);
+Bound_method* new_bound_method(Value receiver, Closure* method);
 Upvalue* new_upvalue(Value* slot);
 Closure* new_closure(Function* function);
 Function* new_function();

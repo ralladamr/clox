@@ -123,6 +123,12 @@ static bool call_value(Value callee, int arg_count)
             result = true;
             break;
         }
+        case obj_bound_method:
+        {
+            Bound_method* bound = as_bound_method(callee);
+            result = call(bound->method, arg_count);
+            break;
+        }
         case obj_closure:
             result = call(as_closure(callee), arg_count);
             break;
@@ -139,6 +145,24 @@ static bool call_value(Value callee, int arg_count)
             runtime_error("Can only call functions and classes.");
             break;
         }
+    }
+    return result;
+}
+
+static bool bind_method(Class* class, String* name)
+{
+    Value method;
+    bool result = false;
+    if (!table_get(&class->methods, name, &method))
+    {
+        runtime_error("Undefined property for '%s'.", name->chars);
+    }
+    else
+    {
+        Bound_method* bound = new_bound_method(peek(0), as_closure(method));
+        pop();
+        push(object_value((Object*)bound));
+        result = true;
     }
     return result;
 }
@@ -182,6 +206,14 @@ static void close_upvalues(Value* last)
         upvalue->location = &upvalue->closed;
         vm.open_upvalues = upvalue->next;
     }
+}
+
+static void define_method(String* name)
+{
+    Value method = peek(0);
+    Class* class = as_class(peek(1));
+    table_set(&class->methods, name, method);
+    pop();
 }
 
 static bool is_falsey(Value value)
@@ -402,9 +434,8 @@ static Interpret_result run()
                     pop();
                     push(value);
                 }
-                else
+                else if (!bind_method(instance->class, name))
                 {
-                    runtime_error("Undefined property '%s'.", name->chars);
                     result = interpret_runtime_error;
                 }
             }
@@ -432,6 +463,9 @@ static Interpret_result run()
             }
             break;
         }
+        case op_method:
+            define_method(read_string(frame));
+            break;
         case op_equal:
         {
             Value b = pop();

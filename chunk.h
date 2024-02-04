@@ -23,6 +23,7 @@ typedef enum
     op_set_global,
     op_get_property,
     op_set_property,
+    op_method,
     op_equal,
     op_greater,
     op_less,
