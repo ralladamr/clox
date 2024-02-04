@@ -61,34 +61,34 @@ static void free_object(Object* object)
     case obj_upvalue:
     {
         Upvalue* upvalue = (Upvalue*)object;
-        reallocate(upvalue, sizeof(Upvalue), 0);
+        reallocate(object, sizeof(Upvalue), 0);
         break;
     }
     case obj_closure:
     {
         Closure* closure = (Closure*)object;
         free_array_upvalues(closure->upvalues, closure->upvalue_count);
-        reallocate(closure, sizeof(Closure), 0);
+        reallocate(object, sizeof(Closure), 0);
         break;
     }
     case obj_function:
     {
         Function* function = (Function*)object;
         free_chunk(&function->chunk);
-        reallocate(function, sizeof(Function), 0);
+        reallocate(object, sizeof(Function), 0);
         break;
     }
     case obj_native:
     {
         Native* native = (Native*)object;
-        reallocate(native, sizeof(Native), 0);
+        reallocate(object, sizeof(Native), 0);
         break;
     }
     case obj_string:
     {
         String* string = (String*)object;
         free_array_char(string->chars, string->length + 1);
-        reallocate(string, sizeof(String), 0);
+        reallocate(object, sizeof(String), 0);
         break;
     }
     default:
