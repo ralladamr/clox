@@ -7,6 +7,8 @@
 #include "object.h"
 #include "value.h"
 
+typedef struct String String;
+
 typedef struct
 {
     String* key;

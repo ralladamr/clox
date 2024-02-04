@@ -21,6 +21,8 @@ typedef enum
     op_get_global,
     op_define_global,
     op_set_global,
+    op_get_property,
+    op_set_property,
     op_equal,
     op_greater,
     op_less,
@@ -35,7 +37,8 @@ typedef enum
     op_loop,
     op_call,
     op_closure,
-    op_return
+    op_return,
+    op_class
 } Op_code;
 
 typedef struct

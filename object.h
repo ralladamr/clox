@@ -5,11 +5,14 @@
 #include <stdint.h>
 
 #include "chunk.h"
+#include "table.h"
 #include "value.h"
 
 typedef enum
 {
+    obj_class,
     obj_function,
+    obj_instance,
     obj_native,
     obj_closure,
     obj_upvalue,
@@ -117,10 +120,44 @@ static inline Closure* as_closure(Value value)
     return (Closure*)as_object(value);
 }
 
+typedef struct
+{
+    Object object;
+    String* name;
+} Class;
 
+static inline bool is_class(Value value)
+{
+    return is_object_type(value, obj_class);
+}
+
+static inline Class* as_class(Value value)
+{
+    return (Class*)as_object(value);
+}
+
+typedef struct
+{
+    Object object;
+    Class* class;
+    Table fields;
+} Instance;
+
+static inline bool is_instance(Value value)
+{
+    return is_object_type(value, obj_instance);
+}
+
+static inline Instance* as_instance(Value value)
+{
+    return (Instance*)as_object(value);
+}
+
+Class* new_class(String* name);
 Upvalue* new_upvalue(Value* slot);
 Closure* new_closure(Function* function);
 Function* new_function();
+Instance* new_instance(Class* class);
 Native* new_native(Value(*function)(int, Value*));
 String* take_string(char* chars, int length);
 String* copy_string(const char* chars, int length);

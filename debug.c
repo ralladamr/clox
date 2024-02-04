@@ -126,6 +126,12 @@ int disassemble_instruction(Chunk* chunk, int offset)
     case op_set_global:
         next = constant_instruction("OP_SET_GLOBAL", chunk, offset);
         break;
+    case op_get_property:
+        next = constant_instruction("OP_GET_PROPERTY", chunk, offset);
+        break;
+    case op_set_property:
+        next = constant_instruction("OP_SET_PROPERTY", chunk, offset);
+        break;
     case op_equal:
         next = simple_instruction("OP_EQUAL", offset);
         break;
@@ -173,6 +179,9 @@ int disassemble_instruction(Chunk* chunk, int offset)
         break;
     case op_return:
         next = simple_instruction("OP_RETURN", offset);
+        break;
+    case op_class:
+        next = constant_instruction("OP_CLASS", chunk, offset);
         break;
     default:
         next = unknown_instruction(instruction, offset);

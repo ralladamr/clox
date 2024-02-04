@@ -58,9 +58,13 @@ static void free_object(Object* object)
 #endif
     switch (object->type)
     {
+    case obj_class:
+    {
+        reallocate(object, sizeof(Class), 0);
+        break;
+    }
     case obj_upvalue:
     {
-        Upvalue* upvalue = (Upvalue*)object;
         reallocate(object, sizeof(Upvalue), 0);
         break;
     }
@@ -78,9 +82,15 @@ static void free_object(Object* object)
         reallocate(object, sizeof(Function), 0);
         break;
     }
+    case obj_instance:
+    {
+        Instance* instance = (Instance*)object;
+        free_table(&instance->fields);
+        reallocate(object, sizeof(Instance), 0);
+        break;
+    }
     case obj_native:
     {
-        Native* native = (Native*)object;
         reallocate(object, sizeof(Native), 0);
         break;
     }
@@ -252,6 +262,12 @@ static void blacken_object(Object* object)
 #endif
     switch (object->type)
     {
+    case obj_class:
+    {
+        Class* class = (Class*)object;
+        mark_object((Object*)class->name);
+        break;
+    }
     case obj_upvalue:
         mark_value(((Upvalue*)object)->closed);
         break;
@@ -260,6 +276,13 @@ static void blacken_object(Object* object)
         Function* function = (Function*)object;
         mark_object((Object*)function->name);
         mark_array(&function->chunk.constants);
+        break;
+    }
+    case obj_instance:
+    {
+        Instance* instance = (Instance*)object;
+        mark_object((Object*)instance->class);
+        mark_table(&instance->fields);
         break;
     }
     case obj_closure:

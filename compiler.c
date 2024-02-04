@@ -509,6 +509,17 @@ static void function(Function_type type)
     }
 }
 
+static void class_declaration()
+{
+    consume(token_identifier, "Expect class name.");
+    uint8_t name_constant = identifier_constant(&parser.previous);
+    declare_variable();
+    emit_bytes(op_class, name_constant);
+    define_variable(name_constant);
+    consume(token_left_brace, "Expect '{' before class body.");
+    consume(token_right_brace, "Expect '}' after class body.");
+}
+
 static void fun_declaration()
 {
     uint8_t global = parse_variable("Expect function name.");
@@ -653,7 +664,11 @@ static void statement()
 
 static void declaration()
 {
-    if (match(token_fun))
+    if (match(token_class))
+    {
+        class_declaration();
+    }
+    else if (match(token_fun))
     {
         fun_declaration();
     }
@@ -775,6 +790,21 @@ static void call(bool can_assign)
     (void)can_assign;
     uint8_t arg_count = argument_list();
     emit_bytes(op_call, arg_count);
+}
+
+static void dot(bool can_assign)
+{
+    consume(token_identifier, "Expect property name after '.'.");
+    uint8_t name = identifier_constant(&parser.previous);
+    if (can_assign && match(token_equal))
+    {
+        expression();
+        emit_bytes(op_set_property, name);
+    }
+    else
+    {
+        emit_bytes(op_get_property, name);
+    }
 }
 
 static void literal(bool can_assign)
@@ -957,7 +987,7 @@ Rule rules[] =
     [token_left_brace] = { NULL, NULL, prec_none },
     [token_right_brace] = { NULL, NULL, prec_none },
     [token_comma] = { NULL, NULL, prec_none },
-    [token_dot] = { NULL, NULL, prec_none },
+    [token_dot] = { NULL, dot, prec_call },
     [token_minus] = { unary, binary, prec_term },
     [token_plus] = { NULL, binary, prec_term },
     [token_semicolon] = { NULL, NULL, prec_none },

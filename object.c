@@ -33,6 +33,13 @@ static String* allocate_string(char* chars, int length, uint32_t hash)
     return string;
 }
 
+Class* new_class(String* name)
+{
+    Class* class = (Class*)allocate_object(sizeof(Class), obj_class);
+    class->name = name;
+    return class;
+}
+
 Upvalue* new_upvalue(Value* slot)
 {
     Upvalue* upvalue = (Upvalue*)allocate_object(sizeof(Upvalue), obj_upvalue);
@@ -64,6 +71,14 @@ Function* new_function()
     function->name = NULL;
     init_chunk(&function->chunk);
     return function;
+}
+
+Instance* new_instance(Class* class)
+{
+    Instance* instance = (Instance*)allocate_object(sizeof(Instance), obj_instance);
+    instance->class = class;
+    init_table(&instance->fields);
+    return instance;
 }
 
 Native* new_native(Value(*function)(int, Value*))
@@ -136,16 +151,20 @@ void print_object(Value value)
 {
     switch (object_type(value))
     {
+    case obj_class:
+        printf("%s", as_class(value)->name->chars);
+        break;
     case obj_upvalue:
-    {
         printf("upvalue");
         break;
-    }
     case obj_closure:
         print_function(as_closure(value)->function);
         break;
     case obj_function:
         print_function(as_function(value));
+        break;
+    case obj_instance:
+        printf("%s instance", as_instance(value)->class->name->chars);
         break;
     case obj_native:
         printf("<native fn>");

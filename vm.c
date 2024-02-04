@@ -117,6 +117,13 @@ static bool call_value(Value callee, int arg_count)
     {
         switch (object_type(callee))
         {
+        case obj_class:
+        {
+            Class* class = as_class(callee);
+            vm.stack_top[-arg_count - 1] = object_value((Object*)new_instance(class));
+            result = true;
+            break;
+        }
         case obj_closure:
             result = call(as_closure(callee), arg_count);
             break;
@@ -384,6 +391,48 @@ static Interpret_result run()
             }
             break;
         }
+        case op_get_property:
+        {
+            if (is_instance(peek(0)))
+            {
+                Instance* instance = as_instance(peek(0));
+                String* name = read_string(frame);
+                Value value;
+                if (table_get(&instance->fields, name, &value))
+                {
+                    pop();
+                    push(value);
+                }
+                else
+                {
+                    runtime_error("Undefined property '%s'.", name->chars);
+                    result = interpret_runtime_error;
+                }                
+            }
+            else
+            {
+                runtime_error("Only instances have properties.");
+                result = interpret_runtime_error;
+            }
+            break;
+        }
+        case op_set_property:
+        {
+            if (is_instance(peek(1)))
+            {
+                Instance* instance = as_instance(peek(1));
+                table_set(&instance->fields, read_string(frame), peek(0));
+                Value value = pop();
+                pop();
+                push(value);
+            }
+            else
+            {
+                runtime_error("Only instances have fields.");
+                result = interpret_runtime_error;
+            }
+            break;
+        }
         case op_equal:
         {
             Value b = pop();
@@ -483,6 +532,9 @@ static Interpret_result run()
             }
             break;
         }
+        case op_class:
+            push(object_value((Object*)new_class(read_string(frame))));
+            break;
         default:
             break;
         }
