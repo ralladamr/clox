@@ -61,6 +61,7 @@ typedef struct
 typedef enum
 {
     type_function,
+    type_method,
     type_script
 } Function_type;
 
@@ -75,13 +76,18 @@ typedef struct Compiler
     int scope_depth;
 } Compiler;
 
-static Rule* get_rule(Token_type type);
+typedef struct Class_compiler
+{
+    struct Class_compiler* enclosing;
+} Class_compiler;
 
 Parser parser;
 Compiler* current = NULL;
+Class_compiler* current_class = NULL;
 
 static void block();
 static void statement();
+static Rule* get_rule(Token_type type);
 
 static Chunk* current_chunk()
 {
@@ -137,8 +143,16 @@ static void init_compiler(Compiler* compiler, Function_type type)
     Local* local = &current->locals[current->local_count++];
     local->depth = 0;
     local->is_captured = false;
-    local->name.start = "";
-    local->name.length = 0;
+    if (type != type_function)
+    {
+        local->name.start = "this";
+        local->name.length = 4;
+    }
+    else
+    {
+        local->name.start = "";
+        local->name.length = 0;
+    }
 }
 
 static void advance()
@@ -512,7 +526,7 @@ static void method()
 {
     consume(token_identifier, "Expect method name.");
     uint8_t constant = identifier_constant(&parser.previous);
-    Function_type type = type_function;
+    Function_type type = type_method;
     function(type);
     emit_bytes(op_method, constant);
 }
@@ -637,6 +651,8 @@ static void class_declaration()
     declare_variable();
     emit_bytes(op_class, name_constant);
     define_variable(name_constant);
+    Class_compiler class_compiler = {.enclosing = current_class};
+    current_class = &class_compiler;
     named_variable(class_name, false);
     consume(token_left_brace, "Expect '{' before class body.");
     while (!check(token_right_brace) && !check(token_eof))
@@ -645,6 +661,7 @@ static void class_declaration()
     }
     consume(token_right_brace, "Expect '}' after class body.");
     emit_byte(op_pop);
+    current_class = class_compiler.enclosing;
 }
 
 static void fun_declaration()
@@ -995,6 +1012,18 @@ static void or_(bool can_assign)
     patch_jump(end_jump);
 }
 
+static void this_(bool can_assign)
+{
+    if (current_class == NULL)
+    {
+        error("Can't use 'this' outside of a class.");
+    }
+    else
+    {
+        variable(false);
+    }
+}
+
 Rule rules[] =
 {
     [token_left_paren] = {grouping, call, prec_call},
@@ -1031,7 +1060,7 @@ Rule rules[] =
     [token_print] = {NULL, NULL, prec_none},
     [token_return] = {NULL, NULL, prec_none},
     [token_super] = {NULL, NULL, prec_none},
-    [token_this] = {NULL, NULL, prec_none},
+    [token_this] = {this_, NULL, prec_none},
     [token_true] = {literal, NULL, prec_none},
     [token_var] = {NULL, NULL, prec_none},
     [token_while] = {NULL, NULL, prec_none},
