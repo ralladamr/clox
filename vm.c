@@ -120,7 +120,19 @@ static bool call_value(Value callee, int arg_count)
         {
             Class* class = as_class(callee);
             vm.stack_top[-arg_count - 1] = object_value((Object*)new_instance(class));
-            result = true;
+            Value initializer;
+            if (table_get(&class->methods, vm.init_string, &initializer))
+            {
+                result = call(as_closure(initializer), arg_count);
+            }
+            else if (arg_count == 0)
+            {
+                result = true;
+            }
+            else
+            {
+                runtime_error("Expected 0 arguments but got %d.", arg_count);
+            }
             break;
         }
         case obj_bound_method:
@@ -584,6 +596,8 @@ void init_VM()
     vm.next_GC = 1024ull * 1024ull;
     init_table(&vm.globals);
     init_table(&vm.strings);
+    vm.init_string = NULL;
+    vm.init_string = copy_string("init", 4);
     vm.gray_count = 0;
     vm.gray_capacity = 0;
     vm.gray_stack = NULL;
@@ -594,6 +608,7 @@ void free_VM()
 {
     free_table(&vm.globals);
     free_table(&vm.strings);
+    vm.init_string = NULL;
     free_objects();
 }
 

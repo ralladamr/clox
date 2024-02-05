@@ -29,6 +29,7 @@ typedef struct
     Value* stack_top;
     Table globals;
     Table strings;
+    String* init_string;
     Upvalue* open_upvalues;
     size_t bytes_allocated;
     size_t next_GC;

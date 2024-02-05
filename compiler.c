@@ -62,6 +62,7 @@ typedef enum
 {
     type_function,
     type_method,
+    type_initializer,
     type_script
 } Function_type;
 
@@ -237,7 +238,14 @@ static void emit_constant(Value value)
 
 static void emit_return()
 {
-    emit_byte(op_nil);
+    if (current->type == type_initializer)
+    {
+        emit_bytes(op_get_local, 0);
+    }
+    else
+    {
+        emit_byte(op_nil);
+    }
     emit_byte(op_return);
 }
 
@@ -527,6 +535,10 @@ static void method()
     consume(token_identifier, "Expect method name.");
     uint8_t constant = identifier_constant(&parser.previous);
     Function_type type = type_method;
+    if (parser.previous.length == 4 && memcmp(parser.previous.start, "init", 4) == 0)
+    {
+        type = type_initializer;
+    }
     function(type);
     emit_bytes(op_method, constant);
 }
@@ -752,6 +764,10 @@ static void return_statement()
     }
     else
     {
+        if (current->type == type_initializer)
+        {
+            error("Can't return a value from an initializer.");
+        }
         expression();
         consume(token_semicolon, "Expect ';' after return value.");
         emit_byte(op_return);
