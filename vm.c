@@ -162,20 +162,60 @@ static bool call_value(Value callee, int arg_count)
     return result;
 }
 
+static bool invoke_from_class(Class* class, String* name, int arg_count)
+{
+    bool result = false;
+    Value method;
+    if (table_get(&class->methods, name, &method))
+    {
+        result = call(as_closure(method), arg_count);
+    }
+    else
+    {
+        runtime_error("Undefined property '%s'.", name->chars);
+    }
+    return result;
+}
+
+static bool invoke(String* name, int arg_count)
+{
+    Value receiver = peek(arg_count);
+    bool result = false;
+    if (is_instance(receiver))
+    {
+        Instance* instance = as_instance(receiver);
+        Value value;
+        if (table_get(&instance->fields, name, &value))
+        {
+            vm.stack_top[-arg_count - 1] = value;
+            result = call_value(value, arg_count);
+        }
+        else
+        {
+            result = invoke_from_class(instance->class, name, arg_count);
+        }
+    }
+    else
+    {
+        runtime_error("Only instances have methods");
+    }
+    return result;
+}
+
 static bool bind_method(Class* class, String* name)
 {
     Value method;
     bool result = false;
-    if (!table_get(&class->methods, name, &method))
-    {
-        runtime_error("Undefined property for '%s'.", name->chars);
-    }
-    else
+    if (table_get(&class->methods, name, &method))
     {
         Bound_method* bound = new_bound_method(peek(0), as_closure(method));
         pop();
         push(object_value((Object*)bound));
         result = true;
+    }
+    else
+    {
+        runtime_error("Undefined property for '%s'.", name->chars);
     }
     return result;
 }
@@ -531,6 +571,20 @@ static Interpret_result run()
         {
             int arg_count = read_byte(frame);
             if (!call_value(peek(arg_count), arg_count))
+            {
+                result = interpret_runtime_error;
+            }
+            else
+            {
+                frame = &vm.frames[vm.frame_count - 1];
+            }
+            break;
+        }
+        case op_invoke:
+        {
+            String* method = read_string(frame);
+            int arg_count = read_byte(frame);
+            if (!invoke(method, arg_count))
             {
                 result = interpret_runtime_error;
             }

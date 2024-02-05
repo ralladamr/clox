@@ -37,6 +37,7 @@ typedef enum
     op_jump,
     op_loop,
     op_call,
+    op_invoke,
     op_closure,
     op_return,
     op_class

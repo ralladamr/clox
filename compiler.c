@@ -961,6 +961,12 @@ static void dot(bool can_assign)
         expression();
         emit_bytes(op_set_property, name);
     }
+    else if (match(token_left_paren))
+    {
+        uint8_t arg_count = argument_list();
+        emit_bytes(op_invoke, name);
+        emit_byte(arg_count);
+    }
     else
     {
         emit_bytes(op_get_property, name);
