@@ -181,6 +181,9 @@ static Token_type identifier_type()
     case 'r':
         type = check_keyword(1, 5, "eturn", token_return);
         break;
+    case 's':
+        type = check_keyword(1, 4, "uper", token_super);
+        break;
     case 't':
         if (position() > 1)
         {

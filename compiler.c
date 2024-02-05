@@ -80,6 +80,7 @@ typedef struct Compiler
 typedef struct Class_compiler
 {
     struct Class_compiler* enclosing;
+    bool has_superclass;
 } Class_compiler;
 
 Parser parser;
@@ -655,6 +656,17 @@ static void named_variable(Token name, bool can_assign)
     }
 }
 
+static void variable(bool can_assign)
+{
+    named_variable(parser.previous, can_assign);
+}
+
+static Token synthetic_token(const char* text)
+{
+    Token token = {.start = text, .length = (int)strlen(text)};
+    return token;
+}
+
 static void class_declaration()
 {
     consume(token_identifier, "Expect class name.");
@@ -663,8 +675,23 @@ static void class_declaration()
     declare_variable();
     emit_bytes(op_class, name_constant);
     define_variable(name_constant);
-    Class_compiler class_compiler = {.enclosing = current_class};
+    Class_compiler class_compiler = {.enclosing = current_class, .has_superclass = false};
     current_class = &class_compiler;
+    if (match(token_less))
+    {
+        consume(token_identifier, "Expect superclass name.");
+        variable(false);
+        if (identifiers_equal(&class_name, &parser.previous))
+        {
+            error("A class can't inherit from itself");
+        }
+        begin_scope();
+        add_local(synthetic_token("super"));
+        define_variable(0);
+        named_variable(class_name, false);
+        emit_byte(op_inherit);
+        class_compiler.has_superclass = true;
+    }
     named_variable(class_name, false);
     consume(token_left_brace, "Expect '{' before class body.");
     while (!check(token_right_brace) && !check(token_eof))
@@ -673,7 +700,11 @@ static void class_declaration()
     }
     consume(token_right_brace, "Expect '}' after class body.");
     emit_byte(op_pop);
-    current_class = class_compiler.enclosing;
+    if (class_compiler.has_superclass)
+    {
+        end_scope();
+    }
+    current_class = current_class->enclosing;
 }
 
 static void fun_declaration()
@@ -1009,11 +1040,6 @@ static void string(bool can_assign)
     emit_constant(object_value((Object*)string));
 }
 
-static void variable(bool can_assign)
-{
-    named_variable(parser.previous, can_assign);
-}
-
 static void and_(bool can_assign)
 {
     (void)can_assign;
@@ -1036,6 +1062,7 @@ static void or_(bool can_assign)
 
 static void this_(bool can_assign)
 {
+    (void)can_assign;
     if (current_class == NULL)
     {
         error("Can't use 'this' outside of a class.");
@@ -1043,6 +1070,35 @@ static void this_(bool can_assign)
     else
     {
         variable(false);
+    }
+}
+
+static void super_(bool can_assign)
+{
+    (void)can_assign;
+    if (current_class == NULL)
+    {
+        error("Can't user 'super' outside of a class.");
+    }
+    else if (!current_class->has_superclass)
+    {
+        error("Can't use 'super' in a class with no superclass.");
+    }
+    consume(token_dot, "Expect '.' after 'super'.");
+    consume(token_identifier, "Expect superclass after method name.");
+    uint8_t name = identifier_constant(&parser.previous);
+    named_variable(synthetic_token("this"), false);
+    if (match(token_left_paren))
+    {
+        uint8_t arg_count = argument_list();
+        named_variable(synthetic_token("super"), false);
+        emit_bytes(op_super_invoke, name);
+        emit_byte(arg_count);
+    }
+    else
+    {
+        named_variable(synthetic_token("super"), false);
+        emit_bytes(op_get_super, name);
     }
 }
 
@@ -1081,7 +1137,7 @@ Rule rules[] =
     [token_or] = {NULL, or_, prec_or},
     [token_print] = {NULL, NULL, prec_none},
     [token_return] = {NULL, NULL, prec_none},
-    [token_super] = {NULL, NULL, prec_none},
+    [token_super] = {super_, NULL, prec_none},
     [token_this] = {this_, NULL, prec_none},
     [token_true] = {literal, NULL, prec_none},
     [token_var] = {NULL, NULL, prec_none},

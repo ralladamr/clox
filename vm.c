@@ -516,6 +516,16 @@ static Interpret_result run()
             }
             break;
         }
+        case op_get_super:
+        {
+            String* name = read_string(frame);
+            Class* superclass = as_class(pop());
+            if (!bind_method(superclass, name))
+            {
+                result = interpret_runtime_error;
+            }
+            break;
+        }
         case op_method:
             define_method(read_string(frame));
             break;
@@ -594,6 +604,21 @@ static Interpret_result run()
             }
             break;
         }
+        case op_super_invoke:
+        {
+            String* method = read_string(frame);
+            int arg_count = read_byte(frame);
+            Class* superclass = as_class(pop());
+            if (!invoke_from_class(superclass, method, arg_count))
+            {
+                result = interpret_runtime_error;
+            }
+            else
+            {
+                frame = &vm.frames[vm.frame_count - 1];
+            }
+            break;
+        }
         case op_closure:
         {
             Function* function = as_function(read_constant(frame));
@@ -635,6 +660,22 @@ static Interpret_result run()
         case op_class:
             push(object_value((Object*)new_class(read_string(frame))));
             break;
+        case op_inherit:
+        {
+            Value superclass = peek(1);
+            if (is_class(superclass))
+            {
+                Class* subclass = as_class(peek(0));
+                table_add_all(&as_class(superclass)->methods, &subclass->methods);
+                pop();
+            }
+            else
+            {
+                runtime_error("Superclass must be a class.");
+                result = interpret_runtime_error;
+            }
+            break;
+        }
         default:
             break;
         }

@@ -23,6 +23,7 @@ typedef enum
     op_set_global,
     op_get_property,
     op_set_property,
+    op_get_super,
     op_method,
     op_equal,
     op_greater,
@@ -38,9 +39,11 @@ typedef enum
     op_loop,
     op_call,
     op_invoke,
+    op_super_invoke,
     op_closure,
     op_return,
-    op_class
+    op_class,
+    op_inherit
 } Op_code;
 
 typedef struct
