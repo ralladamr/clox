@@ -12,7 +12,7 @@ static const double table_max_load = 0.75;
 
 static Entry* find_entry(Entry* entries, int capacity, String* key)
 {
-    uint32_t index = key->hash % capacity;
+    uint32_t index = key->hash & (capacity - 1);
     Entry* tombstone = NULL;
     Entry* entry = NULL;
     bool found = false;
@@ -38,7 +38,7 @@ static Entry* find_entry(Entry* entries, int capacity, String* key)
         {
             found = true;
         }
-        index = (index + 1) % capacity;
+        index = (index + 1) & (capacity - 1);
     }
     return entry;
 }
@@ -148,7 +148,7 @@ String* table_find_string(Table* table, const char* chars, int length, uint32_t 
     String* string = NULL;
     if (table->count != 0)
     {
-        uint32_t index = hash % table->capacity;
+        uint32_t index = hash & (table->capacity - 1);
         bool stop = false;
         while (!stop)
         {
@@ -166,7 +166,7 @@ String* table_find_string(Table* table, const char* chars, int length, uint32_t 
                 string = entry->key;
                 stop = true;
             }
-            index = (index + 1) % table->capacity;
+            index = (index + 1) & (table->capacity - 1);
         }
     }
     return string;
