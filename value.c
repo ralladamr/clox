@@ -16,6 +16,16 @@ static void grow(Value_array* array)
 bool values_equal(Value a, Value b)
 {
     bool result = false;
+#ifdef NAN_BOXING
+    if (is_number(a) && is_number(b))
+    {
+        result = as_number(a) == as_number(b);
+    }
+    else
+    {
+        result = a == b;
+    }
+#else
     if (a.type == b.type)
     {
         switch (a.type)
@@ -38,6 +48,7 @@ bool values_equal(Value a, Value b)
             break;
         }
     }
+#endif
     return result;
 }
 
@@ -67,6 +78,24 @@ void write_value_array(Value_array* array, Value value)
 
 void print_value(Value value)
 {
+#ifdef NAN_BOXING
+    if (is_bool(value))
+    {
+        printf(as_bool(value) ? "true" : "false");
+    }
+    else if (is_nil(value))
+    {
+        printf("nil");
+    }
+    else if (is_number(value))
+    {
+        printf("%g", as_number(value));
+    }
+    else if (is_object(value))
+    {
+        print_object(value);
+    }
+#else
     switch (value.type)
     {
     case val_bool:
@@ -82,4 +111,5 @@ void print_value(Value value)
         print_object(value);
         break;
     }
+#endif
 }
